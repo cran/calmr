@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+<meta name="author" content="Victor Navarro" />
+
+
+<title>heidi_similarity</title>
+
+<script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
+// be compatible with the behavior of Pandoc < 2.8).
+document.addEventListener('DOMContentLoaded', function(e) {
+  var hs = document.querySelectorAll("div.section[class*='level'] > :first-child");
+  var i, h, a;
+  for (i = 0; i < hs.length; i++) {
+    h = hs[i];
+    if (!/^h[1-6]$/i.test(h.tagName)) continue;  // it should be a header h1-h6
+    a = h.attributes;
+    while (a.length > 0) h.removeAttribute(a[0].name);
+  }
+});
+</script>
+
+<style type="text/css">
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+span.underline{text-decoration: underline;}
+div.column{display: inline-block; vertical-align: top; width: 50%;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+</style>
+
+
+
+<style type="text/css">
+code {
+white-space: pre;
+}
+.sourceCode {
+overflow: visible;
+}
+</style>
+<style type="text/css" data-origin="pandoc">
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+{ counter-reset: source-line 0; }
+pre.numberSource code > span
+{ position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+{ content: counter(source-line);
+position: relative; left: -1em; text-align: right; vertical-align: baseline;
+border: none; display: inline-block;
+-webkit-touch-callout: none; -webkit-user-select: none;
+-khtml-user-select: none; -moz-user-select: none;
+-ms-user-select: none; user-select: none;
+padding: 0 4px; width: 4em;
+color: #aaaaaa;
+}
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa; padding-left: 4px; }
+div.sourceCode
+{ }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } 
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.at { color: #7d9029; } 
+code span.bn { color: #40a070; } 
+code span.bu { color: #008000; } 
+code span.cf { color: #007020; font-weight: bold; } 
+code span.ch { color: #4070a0; } 
+code span.cn { color: #880000; } 
+code span.co { color: #60a0b0; font-style: italic; } 
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.do { color: #ba2121; font-style: italic; } 
+code span.dt { color: #902000; } 
+code span.dv { color: #40a070; } 
+code span.er { color: #ff0000; font-weight: bold; } 
+code span.ex { } 
+code span.fl { color: #40a070; } 
+code span.fu { color: #06287e; } 
+code span.im { color: #008000; font-weight: bold; } 
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.kw { color: #007020; font-weight: bold; } 
+code span.op { color: #666666; } 
+code span.ot { color: #007020; } 
+code span.pp { color: #bc7a00; } 
+code span.sc { color: #4070a0; } 
+code span.ss { color: #bb6688; } 
+code span.st { color: #4070a0; } 
+code span.va { color: #19177c; } 
+code span.vs { color: #4070a0; } 
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } 
+</style>
+<script>
+// apply pandoc div.sourceCode style to pre.sourceCode instead
+(function() {
+  var sheets = document.styleSheets;
+  for (var i = 0; i < sheets.length; i++) {
+    if (sheets[i].ownerNode.dataset["origin"] !== "pandoc") continue;
+    try { var rules = sheets[i].cssRules; } catch (e) { continue; }
+    var j = 0;
+    while (j < rules.length) {
+      var rule = rules[j];
+      // check if there is a div.sourceCode rule
+      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") {
+        j++;
+        continue;
+      }
+      var style = rule.style.cssText;
+      // check if color or background-color is set
+      if (rule.style.color === '' && rule.style.backgroundColor === '') {
+        j++;
+        continue;
+      }
+      // replace div.sourceCode by a pre.sourceCode rule
+      sheets[i].deleteRule(j);
+      sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
+    }
+  }
+})();
+</script>
+
+
+
+
+<style type="text/css">body {
+background-color: #fff;
+margin: 1em auto;
+max-width: 700px;
+overflow: visible;
+padding-left: 2em;
+padding-right: 2em;
+font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+font-size: 14px;
+line-height: 1.35;
+}
+#TOC {
+clear: both;
+margin: 0 0 10px 10px;
+padding: 4px;
+width: 400px;
+border: 1px solid #CCCCCC;
+border-radius: 5px;
+background-color: #f6f6f6;
+font-size: 13px;
+line-height: 1.3;
+}
+#TOC .toctitle {
+font-weight: bold;
+font-size: 15px;
+margin-left: 5px;
+}
+#TOC ul {
+padding-left: 40px;
+margin-left: -1.5em;
+margin-top: 5px;
+margin-bottom: 5px;
+}
+#TOC ul ul {
+margin-left: -2em;
+}
+#TOC li {
+line-height: 16px;
+}
+table {
+margin: 1em auto;
+border-width: 1px;
+border-color: #DDDDDD;
+border-style: outset;
+border-collapse: collapse;
+}
+table th {
+border-width: 2px;
+padding: 5px;
+border-style: inset;
+}
+table td {
+border-width: 1px;
+border-style: inset;
+line-height: 18px;
+padding: 5px 5px;
+}
+table, table th, table td {
+border-left-style: none;
+border-right-style: none;
+}
+table thead, table tr.even {
+background-color: #f7f7f7;
+}
+p {
+margin: 0.5em 0;
+}
+blockquote {
+background-color: #f6f6f6;
+padding: 0.25em 0.75em;
+}
+hr {
+border-style: solid;
+border: none;
+border-top: 1px solid #777;
+margin: 28px 0;
+}
+dl {
+margin-left: 0;
+}
+dl dd {
+margin-bottom: 13px;
+margin-left: 13px;
+}
+dl dt {
+font-weight: bold;
+}
+ul {
+margin-top: 0;
+}
+ul li {
+list-style: circle outside;
+}
+ul ul {
+margin-bottom: 0;
+}
+pre, code {
+background-color: #f7f7f7;
+border-radius: 3px;
+color: #333;
+white-space: pre-wrap; 
+}
+pre {
+border-radius: 3px;
+margin: 5px 0px 10px 0px;
+padding: 10px;
+}
+pre:not([class]) {
+background-color: #f7f7f7;
+}
+code {
+font-family: Consolas, Monaco, 'Courier New', monospace;
+font-size: 85%;
+}
+p > code, li > code {
+padding: 2px 0px;
+}
+div.figure {
+text-align: center;
+}
+img {
+background-color: #FFFFFF;
+padding: 2px;
+border: 1px solid #DDDDDD;
+border-radius: 3px;
+border: 1px solid #CCCCCC;
+margin: 0 5px;
+}
+h1 {
+margin-top: 0;
+font-size: 35px;
+line-height: 40px;
+}
+h2 {
+border-bottom: 4px solid #f7f7f7;
+padding-top: 10px;
+padding-bottom: 2px;
+font-size: 145%;
+}
+h3 {
+border-bottom: 2px solid #f7f7f7;
+padding-top: 10px;
+font-size: 120%;
+}
+h4 {
+border-bottom: 1px solid #f7f7f7;
+margin-left: 8px;
+font-size: 105%;
+}
+h5, h6 {
+border-bottom: 1px solid #ccc;
+font-size: 105%;
+}
+a {
+color: #0033dd;
+text-decoration: none;
+}
+a:hover {
+color: #6666ff; }
+a:visited {
+color: #800080; }
+a:visited:hover {
+color: #BB00BB; }
+a[href^="http:"] {
+text-decoration: underline; }
+a[href^="https:"] {
+text-decoration: underline; }
+
+code > span.kw { color: #555; font-weight: bold; } 
+code > span.dt { color: #902000; } 
+code > span.dv { color: #40a070; } 
+code > span.bn { color: #d14; } 
+code > span.fl { color: #d14; } 
+code > span.ch { color: #d14; } 
+code > span.st { color: #d14; } 
+code > span.co { color: #888888; font-style: italic; } 
+code > span.ot { color: #007020; } 
+code > span.al { color: #ff0000; font-weight: bold; } 
+code > span.fu { color: #900; font-weight: bold; } 
+code > span.er { color: #a61717; background-color: #e3d2d2; } 
+</style>
+
+
+
+
+</head>
+
+<body>
+
+
+
+
+<h1 class="title toc-ignore">heidi_similarity</h1>
+<h4 class="author">Victor Navarro</h4>
+
+
+
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="fu">library</span>(calmr)</span>
+<span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span>
+<span id="cb1-3"><a href="#cb1-3" tabindex="-1"></a><span class="fu">library</span>(data.table)</span></code></pre></div>
+<div id="simulating-similarity-effects" class="section level1">
+<h1>Simulating similarity effects</h1>
+<p>In Honey and Dwyer (2022), the authors propose that the similarity
+between the retrieved and nominal saliencies of stimulus representations
+modulates some quantities in the combination rule. Retrieved saliencies
+are exclusively for absent stimuli, and are the result of the existing
+associations between stimuli (see Eq. 8 in the model’s vignette). In
+contrast, nominal saliencies denote the intensity of stimulus
+representations when stimuli are presented on a trial (<span class="math inline">\(\alpha\)</span>).</p>
+<p>An intuitive example of the effect that saliency similarity has over
+responding refers to the effect that weakly retrieved representations
+have over behavior. The low similarity between a weakly retrieved
+representation and its nominal representation should result in a reduced
+effect of the former over behavior. For example, in a typical Pavlovian
+inhibition paradigm <span class="math display">\[A(US)/AX\]</span>, an
+inhibitor (e.g., X) that has a strong effect on behavior when presented
+will only have a weak effect on behavior if weakly retrieved by a
+stimulus that has a strong association with it (e.g., A).</p>
+<p>Yet, the inspiration for proposing such a general rule was fairly
+specific. It was an attempt to explain why the introduction of a delay
+between CS and US stimuli in higher-order conditioning experiments could
+sometimes enhance responding to the stimulus that was never paired with
+the US (e.g., A after AX/X(US) or X(US)/AX).</p>
+<div id="reproducing-the-simulation-presented-in-the-paper" class="section level2">
+<h2>Reproducing the simulation presented in the paper</h2>
+<p>In the paper, the authors plot the similarity between the retrieved
+saliencies and the nominal saliencies for stimulus X during a sensory
+preconditioning experiment in which a short delay between X and the US
+was used (group Reduced) or not (group Same). The effect of introducing
+a delay was simulated as X having a saliency of .36; otherwise, its
+saliency was .40. The saliencies of A and the US were fixed to .30 and
+.50, respectively, for both conditions.</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a>df <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a>  <span class="at">Group =</span> <span class="fu">c</span>(<span class="st">&quot;Same&quot;</span>, <span class="st">&quot;Reduced&quot;</span>),</span>
+<span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a>  <span class="at">P1 =</span> <span class="fu">c</span>(<span class="st">&quot;10A(X_a)&quot;</span>, <span class="st">&quot;10A(X_a)&quot;</span>),</span>
+<span id="cb2-4"><a href="#cb2-4" tabindex="-1"></a>  <span class="at">R1 =</span> <span class="fu">c</span>(<span class="cn">FALSE</span>, <span class="cn">FALSE</span>),</span>
+<span id="cb2-5"><a href="#cb2-5" tabindex="-1"></a>  <span class="at">P2 =</span> <span class="fu">c</span>(<span class="st">&quot;10(X_a)(US)&quot;</span>, <span class="st">&quot;10(X_b)(US)&quot;</span>),</span>
+<span id="cb2-6"><a href="#cb2-6" tabindex="-1"></a>  <span class="at">R2 =</span> <span class="fu">c</span>(<span class="cn">FALSE</span>, <span class="cn">FALSE</span>)</span>
+<span id="cb2-7"><a href="#cb2-7" tabindex="-1"></a>)</span>
+<span id="cb2-8"><a href="#cb2-8" tabindex="-1"></a>params <span class="ot">&lt;-</span> <span class="fu">get_parameters</span>(df, <span class="at">model =</span> <span class="st">&quot;HD2022&quot;</span>)</span>
+<span id="cb2-9"><a href="#cb2-9" tabindex="-1"></a>params<span class="sc">$</span>alphas[] <span class="ot">&lt;-</span> <span class="fu">c</span>(.<span class="dv">30</span>, .<span class="dv">40</span>, .<span class="dv">50</span>, .<span class="dv">36</span>)</span>
+<span id="cb2-10"><a href="#cb2-10" tabindex="-1"></a>model <span class="ot">&lt;-</span> <span class="fu">run_experiment</span>(df,</span>
+<span id="cb2-11"><a href="#cb2-11" tabindex="-1"></a>  <span class="at">model =</span> <span class="st">&quot;HD2022&quot;</span>,</span>
+<span id="cb2-12"><a href="#cb2-12" tabindex="-1"></a>  <span class="at">parameters =</span> params</span>
+<span id="cb2-13"><a href="#cb2-13" tabindex="-1"></a>)</span></code></pre></div>
+<div id="plotting-the-similarity-between-saliencies" class="section level3">
+<h3>Plotting the similarity between saliencies</h3>
+<p>This plot is not currently supported in the package, but it can be
+easily generated by passing the <span class="math inline">\(A
+\rightarrow X\)</span> association as one of the alphas for the internal
+function used to calculate the similarity
+<code>calmr:::.alphaSim</code>.</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a>vs <span class="ot">&lt;-</span> <span class="fu">results</span>(model)<span class="sc">$</span>vs[s1 <span class="sc">==</span> <span class="st">&quot;A&quot;</span> <span class="sc">&amp;</span> s2 <span class="sc">==</span> <span class="st">&quot;X&quot;</span> <span class="sc">&amp;</span> phase <span class="sc">==</span> <span class="st">&quot;P1&quot;</span>]</span>
+<span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a>vs[</span>
+<span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a>  , nominal_alpha <span class="sc">:=</span> <span class="fu">ifelse</span>(group <span class="sc">==</span> <span class="st">&quot;Reduced&quot;</span>, <span class="fu">mean</span>(.<span class="dv">36</span>, .<span class="dv">40</span>), .<span class="dv">40</span>)</span>
+<span id="cb3-4"><a href="#cb3-4" tabindex="-1"></a>][</span>
+<span id="cb3-5"><a href="#cb3-5" tabindex="-1"></a>  ,</span>
+<span id="cb3-6"><a href="#cb3-6" tabindex="-1"></a>  similarity <span class="sc">:=</span> calmr<span class="sc">:::</span><span class="fu">.alphaSim</span>(value, nominal_alpha)</span>
+<span id="cb3-7"><a href="#cb3-7" tabindex="-1"></a>]</span>
+<span id="cb3-8"><a href="#cb3-8" tabindex="-1"></a></span>
+<span id="cb3-9"><a href="#cb3-9" tabindex="-1"></a>vs <span class="sc">|&gt;</span></span>
+<span id="cb3-10"><a href="#cb3-10" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> trial, <span class="at">y =</span> similarity, <span class="at">linetype =</span> group)) <span class="sc">+</span></span>
+<span id="cb3-11"><a href="#cb3-11" tabindex="-1"></a>  <span class="fu">geom_line</span>() <span class="sc">+</span></span>
+<span id="cb3-12"><a href="#cb3-12" tabindex="-1"></a>  <span class="fu">theme_bw</span>() <span class="sc">+</span></span>
+<span id="cb3-13"><a href="#cb3-13" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">&quot;Trial&quot;</span>, <span class="at">y =</span> <span class="st">&quot;Similarity&quot;</span>, <span class="at">linetype =</span> <span class="st">&quot;Group&quot;</span>)</span></code></pre></div>
+<p><img src="data:image/png;base64,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" /><!-- --></p>
+</div>
+<div id="plotting-the-distribution-of-responding" class="section level3">
+<h3>Plotting the distribution of responding</h3>
+<p>This one is a little bit trickier because the figure in the
+manuscript effectively contains many experiments varying the number of
+XA trials before starting the first-order conditioning phase. To address
+this, we run multiple simulations with different experimental
+designs.</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a>ntrials <span class="ot">&lt;-</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">10</span></span>
+<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a>df <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a>  <span class="at">Group =</span> <span class="fu">c</span>(<span class="fu">paste0</span>(<span class="st">&quot;S&quot;</span>, ntrials), <span class="fu">paste0</span>(<span class="st">&quot;R&quot;</span>, ntrials)),</span>
+<span id="cb4-4"><a href="#cb4-4" tabindex="-1"></a>  <span class="at">P1 =</span> <span class="fu">rep</span>(<span class="fu">paste0</span>(ntrials, <span class="st">&quot;A(X_a)&quot;</span>), <span class="dv">2</span>),</span>
+<span id="cb4-5"><a href="#cb4-5" tabindex="-1"></a>  <span class="at">R1 =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb4-6"><a href="#cb4-6" tabindex="-1"></a>  <span class="at">P2 =</span> <span class="fu">rep</span>(<span class="fu">c</span>(<span class="st">&quot;10(X_a)&gt;(US)&quot;</span>, <span class="st">&quot;10(X_b)&gt;(US)&quot;</span>), <span class="at">each =</span> <span class="dv">10</span>),</span>
+<span id="cb4-7"><a href="#cb4-7" tabindex="-1"></a>  <span class="at">R2 =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb4-8"><a href="#cb4-8" tabindex="-1"></a>  <span class="at">P3 =</span> <span class="st">&quot;1A#&quot;</span>,</span>
+<span id="cb4-9"><a href="#cb4-9" tabindex="-1"></a>  <span class="at">R3 =</span> <span class="cn">FALSE</span></span>
+<span id="cb4-10"><a href="#cb4-10" tabindex="-1"></a>)</span>
+<span id="cb4-11"><a href="#cb4-11" tabindex="-1"></a><span class="fu">head</span>(df)</span>
+<span id="cb4-12"><a href="#cb4-12" tabindex="-1"></a><span class="co">#&gt;   Group      P1    R1           P2    R2  P3    R3</span></span>
+<span id="cb4-13"><a href="#cb4-13" tabindex="-1"></a><span class="co">#&gt; 1    S1 1A(X_a) FALSE 10(X_a)&gt;(US) FALSE 1A# FALSE</span></span>
+<span id="cb4-14"><a href="#cb4-14" tabindex="-1"></a><span class="co">#&gt; 2    S2 2A(X_a) FALSE 10(X_a)&gt;(US) FALSE 1A# FALSE</span></span>
+<span id="cb4-15"><a href="#cb4-15" tabindex="-1"></a><span class="co">#&gt; 3    S3 3A(X_a) FALSE 10(X_a)&gt;(US) FALSE 1A# FALSE</span></span>
+<span id="cb4-16"><a href="#cb4-16" tabindex="-1"></a><span class="co">#&gt; 4    S4 4A(X_a) FALSE 10(X_a)&gt;(US) FALSE 1A# FALSE</span></span>
+<span id="cb4-17"><a href="#cb4-17" tabindex="-1"></a><span class="co">#&gt; 5    S5 5A(X_a) FALSE 10(X_a)&gt;(US) FALSE 1A# FALSE</span></span>
+<span id="cb4-18"><a href="#cb4-18" tabindex="-1"></a><span class="co">#&gt; 6    S6 6A(X_a) FALSE 10(X_a)&gt;(US) FALSE 1A# FALSE</span></span></code></pre></div>
+<p>Run the model.</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a>model <span class="ot">&lt;-</span> <span class="fu">run_experiment</span>(df,</span>
+<span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a>  <span class="at">model =</span> <span class="st">&quot;HD2022&quot;</span>,</span>
+<span id="cb5-3"><a href="#cb5-3" tabindex="-1"></a>  <span class="at">parameters =</span> params</span>
+<span id="cb5-4"><a href="#cb5-4" tabindex="-1"></a>)</span></code></pre></div>
+<p>And now we can manually plot the distribution of responding among
+stimuli <code>model$rs</code>.</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a>rs <span class="ot">&lt;-</span> <span class="fu">results</span>(model)<span class="sc">$</span>rs[phase <span class="sc">==</span> <span class="st">&quot;P3&quot;</span> <span class="sc">&amp;</span> s2 <span class="sc">==</span> <span class="st">&quot;US&quot;</span>]</span>
+<span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a>rs[, <span class="st">`</span><span class="at">:=</span><span class="st">`</span>(</span>
+<span id="cb6-3"><a href="#cb6-3" tabindex="-1"></a>  <span class="at">trial =</span> trial <span class="sc">-</span> <span class="dv">11</span>,</span>
+<span id="cb6-4"><a href="#cb6-4" tabindex="-1"></a>  <span class="at">group_lab =</span> <span class="fu">ifelse</span>(<span class="fu">substr</span>(group, <span class="dv">1</span>, <span class="dv">1</span>) <span class="sc">==</span> <span class="st">&quot;R&quot;</span>, <span class="st">&quot;Reduced&quot;</span>, <span class="st">&quot;Same&quot;</span>)</span>
+<span id="cb6-5"><a href="#cb6-5" tabindex="-1"></a>)]</span>
+<span id="cb6-6"><a href="#cb6-6" tabindex="-1"></a></span>
+<span id="cb6-7"><a href="#cb6-7" tabindex="-1"></a>rs <span class="sc">|&gt;</span></span>
+<span id="cb6-8"><a href="#cb6-8" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> trial, <span class="at">y =</span> value, <span class="at">colour =</span> s1, <span class="at">linetype =</span> group_lab)) <span class="sc">+</span></span>
+<span id="cb6-9"><a href="#cb6-9" tabindex="-1"></a>  <span class="fu">geom_line</span>() <span class="sc">+</span></span>
+<span id="cb6-10"><a href="#cb6-10" tabindex="-1"></a>  <span class="fu">theme_bw</span>() <span class="sc">+</span></span>
+<span id="cb6-11"><a href="#cb6-11" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">&quot;Trial&quot;</span>, <span class="at">y =</span> <span class="st">&quot;R-value&quot;</span>, <span class="at">colour =</span> <span class="st">&quot;stimulus&quot;</span>, <span class="at">linetype =</span> <span class="st">&quot;Group&quot;</span>) <span class="sc">+</span></span>
+<span id="cb6-12"><a href="#cb6-12" tabindex="-1"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span>s2)</span></code></pre></div>
+<p><img src="data:image/png;base64,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" /><!-- --></p>
+</div>
+<div id="some-final-notes" class="section level3">
+<h3>Some final notes</h3>
+<p>In their paper, Honey and Dwyer do not completely specify the rules
+for choosing a reference value for the similarity calculation whenever
+more than one nominal stimulus has been experienced. For example, in the
+above simulation, we use two nominal versions of the X stimulus (X_a and
+X_b), and so, whenever the model has to compute the similarity between
+retrieved (i.e., <span class="math inline">\(A \rightarrow X\)</span>)
+and conditioned saliency values, we encounter the problem of having to
+choose among at least two conditioned values (X_a or X_b). Although the
+authors of the paper chose the saliency for the nominal X that was
+conditioned with the US (i.e., X_b), they do not specify how this choice
+should be made in other, less intuitive situations. As a way to avoid
+solving this issue, the current implementation of the similarity rule
+uses the average of the nominal stimuli as a reference value for the
+similarity calculation. For this specific simulation case, this
+implementation reduces the effect of similarity over the distribution of
+responding.</p>
+</div>
+</div>
+</div>
+
+
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
