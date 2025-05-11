@@ -33,7 +33,7 @@ SM2007 <- function(v = NULL, # nolint
                    comparator_func = .witnauer_comparator_proc,
                    ...) {
   # checks
-  .calmr_assert("no_functional_stimuli", mapping)
+  .assert_no_functional(mapping)
 
   # data initialization
   ntrials <- length(experience$tp) # max trials
@@ -149,6 +149,11 @@ SM2007 <- function(v = NULL, # nolint
       o <- o + do
     }
   }
-  results <- list(vs = vs, acts = acts, relacts = relacts, os = os)
+  results <- list(
+    associations = vs,
+    activations = acts,
+    relative_activations = relacts,
+    operator_switches = os
+  )
   results
 }

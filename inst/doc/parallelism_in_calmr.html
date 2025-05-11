@@ -49,8 +49,9 @@ overflow: visible;
 }
 </style>
 <style type="text/css" data-origin="pandoc">
+html { -webkit-text-size-adjust: 100%; }
 pre > code.sourceCode { white-space: pre; position: relative; }
-pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
 pre > code.sourceCode > span:empty { height: 1.2em; }
 .sourceCode { overflow: visible; }
 code.sourceCode > span { color: inherit; text-decoration: inherit; }
@@ -370,7 +371,7 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 <p>With the advent of time-based models, version 0.51 of
 <code>calmr</code> uses the <code>future</code> package to parallelize
 some operations. Thanks to the design philosophy of <code>future</code>,
-running things in parallel takes a single line of code.</p>
+running things in parallel will take you a single line of code.</p>
 <div id="why-run-things-in-parallel" class="section level3">
 <h3>Why run things in parallel?</h3>
 <p>In many situations we find ourselves having to run a model over many
@@ -379,42 +380,40 @@ that order effects are a worry, or because we want to run the same model
 with different parameters.</p>
 <p>Let’s run the HeiDI model <span class="citation">(Honey et al.,
 2020)</span> over a long, random design. Let’s also enable verbosity via
-<code>calmr_verbosity</code>, which uses the cool <code>progressr</code>
+<code>calmr_verbosity()</code>, which uses the <code>progressr</code>
 package.</p>
 <div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="fu">library</span>(calmr)</span>
 <span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a><span class="co"># enables progress bars (try it on your computer)</span></span>
 <span id="cb1-3"><a href="#cb1-3" tabindex="-1"></a><span class="co"># calmr_verbosity(TRUE)</span></span>
 <span id="cb1-4"><a href="#cb1-4" tabindex="-1"></a>pav_inhib <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
 <span id="cb1-5"><a href="#cb1-5" tabindex="-1"></a>  <span class="at">group =</span> <span class="st">&quot;group&quot;</span>,</span>
-<span id="cb1-6"><a href="#cb1-6" tabindex="-1"></a>  <span class="at">phase1 =</span> <span class="st">&quot;50(US)/50AB/50#A&quot;</span>,</span>
-<span id="cb1-7"><a href="#cb1-7" tabindex="-1"></a>  <span class="at">rand1 =</span> <span class="cn">TRUE</span></span>
-<span id="cb1-8"><a href="#cb1-8" tabindex="-1"></a>)</span>
-<span id="cb1-9"><a href="#cb1-9" tabindex="-1"></a><span class="co"># set options to introduce more randomness</span></span>
-<span id="cb1-10"><a href="#cb1-10" tabindex="-1"></a>pars <span class="ot">&lt;-</span> <span class="fu">get_parameters</span>(pav_inhib, <span class="at">model =</span> <span class="st">&quot;HDI2020&quot;</span>)</span>
-<span id="cb1-11"><a href="#cb1-11" tabindex="-1"></a>exp <span class="ot">&lt;-</span> <span class="fu">make_experiment</span>(pav_inhib,</span>
-<span id="cb1-12"><a href="#cb1-12" tabindex="-1"></a>  <span class="at">parameters =</span> pars,</span>
-<span id="cb1-13"><a href="#cb1-13" tabindex="-1"></a>  <span class="at">model =</span> <span class="st">&quot;HDI2020&quot;</span>,</span>
-<span id="cb1-14"><a href="#cb1-14" tabindex="-1"></a>  <span class="at">iterations =</span> <span class="dv">100</span>,</span>
-<span id="cb1-15"><a href="#cb1-15" tabindex="-1"></a>  <span class="at">miniblocks =</span> <span class="cn">FALSE</span></span>
-<span id="cb1-16"><a href="#cb1-16" tabindex="-1"></a>)</span>
-<span id="cb1-17"><a href="#cb1-17" tabindex="-1"></a></span>
-<span id="cb1-18"><a href="#cb1-18" tabindex="-1"></a><span class="co"># time it</span></span>
-<span id="cb1-19"><a href="#cb1-19" tabindex="-1"></a>start <span class="ot">&lt;-</span> <span class="fu">proc.time</span>()</span>
-<span id="cb1-20"><a href="#cb1-20" tabindex="-1"></a>pav_res <span class="ot">&lt;-</span> <span class="fu">run_experiment</span>(exp)</span>
-<span id="cb1-21"><a href="#cb1-21" tabindex="-1"></a>end <span class="ot">&lt;-</span> <span class="fu">proc.time</span>() <span class="sc">-</span> start</span>
-<span id="cb1-22"><a href="#cb1-22" tabindex="-1"></a>end</span>
-<span id="cb1-23"><a href="#cb1-23" tabindex="-1"></a><span class="co">#&gt;    user  system elapsed </span></span>
-<span id="cb1-24"><a href="#cb1-24" tabindex="-1"></a><span class="co">#&gt;    1.80    0.00    3.75</span></span></code></pre></div>
-<p>You can see the timings above, under the <code>elapsed</code> column.
-Let’s try parallelizing now.</p>
+<span id="cb1-6"><a href="#cb1-6" tabindex="-1"></a>  <span class="at">phase1 =</span> <span class="st">&quot;!50(US)/50AB/50#A&quot;</span></span>
+<span id="cb1-7"><a href="#cb1-7" tabindex="-1"></a>)</span>
+<span id="cb1-8"><a href="#cb1-8" tabindex="-1"></a><span class="co"># set options to introduce more randomness</span></span>
+<span id="cb1-9"><a href="#cb1-9" tabindex="-1"></a>pars <span class="ot">&lt;-</span> <span class="fu">get_parameters</span>(pav_inhib, <span class="at">model =</span> <span class="st">&quot;HDI2020&quot;</span>)</span>
+<span id="cb1-10"><a href="#cb1-10" tabindex="-1"></a>exp <span class="ot">&lt;-</span> <span class="fu">make_experiment</span>(pav_inhib,</span>
+<span id="cb1-11"><a href="#cb1-11" tabindex="-1"></a>  <span class="at">parameters =</span> pars,</span>
+<span id="cb1-12"><a href="#cb1-12" tabindex="-1"></a>  <span class="at">model =</span> <span class="st">&quot;HDI2020&quot;</span>,</span>
+<span id="cb1-13"><a href="#cb1-13" tabindex="-1"></a>  <span class="at">iterations =</span> <span class="dv">100</span>,</span>
+<span id="cb1-14"><a href="#cb1-14" tabindex="-1"></a>  <span class="at">miniblocks =</span> <span class="cn">FALSE</span></span>
+<span id="cb1-15"><a href="#cb1-15" tabindex="-1"></a>)</span>
+<span id="cb1-16"><a href="#cb1-16" tabindex="-1"></a></span>
+<span id="cb1-17"><a href="#cb1-17" tabindex="-1"></a><span class="co"># time it</span></span>
+<span id="cb1-18"><a href="#cb1-18" tabindex="-1"></a>start <span class="ot">&lt;-</span> <span class="fu">proc.time</span>()</span>
+<span id="cb1-19"><a href="#cb1-19" tabindex="-1"></a>pav_res <span class="ot">&lt;-</span> <span class="fu">run_experiment</span>(exp)</span>
+<span id="cb1-20"><a href="#cb1-20" tabindex="-1"></a>end <span class="ot">&lt;-</span> <span class="fu">proc.time</span>() <span class="sc">-</span> start</span>
+<span id="cb1-21"><a href="#cb1-21" tabindex="-1"></a>end</span>
+<span id="cb1-22"><a href="#cb1-22" tabindex="-1"></a><span class="co">#&gt;    user  system elapsed </span></span>
+<span id="cb1-23"><a href="#cb1-23" tabindex="-1"></a><span class="co">#&gt;   3.236   0.026   2.042</span></span></code></pre></div>
+<p>Let’s try parallelizing now.</p>
 </div>
 <div id="running-an-experiment-in-parallel" class="section level3">
 <h3>Running an experiment in parallel</h3>
 <p>To run the same experiment, but in parallel, you need to enable a
 <code>future</code> plan. A “plan” is one of many ways the
-<code>future</code> package can parallelize things (you should consult
-their documentation). Regardless, if you are running <code>calmr</code>
-on a single computer, you’ll be using
+<code>future</code> package can parallelize things (you should really
+consult their documentation). Regardless, if you are running
+<code>calmr</code> on a single computer, you’ll be using
 <code>plan(multisession)</code></p>
 <div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a><span class="fu">library</span>(future)</span>
 <span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a><span class="fu">plan</span>(multisession)</span>
@@ -424,14 +423,15 @@ on a single computer, you’ll be using
 <span id="cb2-6"><a href="#cb2-6" tabindex="-1"></a>end <span class="ot">&lt;-</span> <span class="fu">proc.time</span>() <span class="sc">-</span> start</span>
 <span id="cb2-7"><a href="#cb2-7" tabindex="-1"></a>end</span>
 <span id="cb2-8"><a href="#cb2-8" tabindex="-1"></a><span class="co">#&gt;    user  system elapsed </span></span>
-<span id="cb2-9"><a href="#cb2-9" tabindex="-1"></a><span class="co">#&gt;    0.77    0.08    5.86</span></span>
+<span id="cb2-9"><a href="#cb2-9" tabindex="-1"></a><span class="co">#&gt;   3.678   0.262   4.940</span></span>
 <span id="cb2-10"><a href="#cb2-10" tabindex="-1"></a></span>
 <span id="cb2-11"><a href="#cb2-11" tabindex="-1"></a><span class="co"># go back to non-parallel evaluations</span></span>
 <span id="cb2-12"><a href="#cb2-12" tabindex="-1"></a><span class="fu">plan</span>(sequential)</span></code></pre></div>
-<p>In this case, the parallel evaluation was slower. The
-<code>future</code> package trades off ease of use for bulkier
-overheads. As those overheads tend to be constant, the parallelization
-will have a better payoff once you run more iterations.</p>
+<p>In this case, the parallel evaluation was faster (see <em>user</em>
+time above).</p>
+<p>The <code>future</code> package trades off ease of use for bulkier
+overheads, but as the overheads tend to be constant, the parallelization
+will have a better payoff once you run more and more iterations.</p>
 <div id="refs" class="references csl-bib-body hanging-indent" entry-spacing="0" line-spacing="2">
 <div id="ref-honey_heidi_2020" class="csl-entry">
 Honey, R. C., Dwyer, D. M., &amp; Iliescu, A. F. (2020).

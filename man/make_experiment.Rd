@@ -6,10 +6,12 @@
 \usage{
 make_experiment(
   design,
+  model,
   parameters = NULL,
-  model = NULL,
+  timings = NULL,
   iterations = 1,
   miniblocks = TRUE,
+  seed = NULL,
   .callback_fn = NULL,
   ...
 )
@@ -17,14 +19,21 @@ make_experiment(
 \arguments{
 \item{design}{A design \code{data.frame}.}
 
-\item{parameters}{Parameters for a  model as
-returned by \code{\link[=get_parameters]{get_parameters()}}.}
-
 \item{model}{A string specifying the model name. One of \code{\link[=supported_models]{supported_models()}}.}
 
-\item{iterations}{An integer specifying the number of iterations per group.}
+\item{parameters}{Optional. Parameters for a  model as
+returned by \code{\link[=get_parameters]{get_parameters()}}.}
 
-\item{miniblocks}{Whether to organize trials in miniblocks.}
+\item{timings}{Optional. Timings for a time-based design as
+returned by \code{\link[=get_timings]{get_timings()}}}
+
+\item{iterations}{An integer specifying the number of iterations per group.
+Default = 1.}
+
+\item{miniblocks}{Whether to organize trials in miniblocks. Default = TRUE.}
+
+\item{seed}{A valid seed for the RNG to make the experiment.
+Default = NULL, in which case the current RNG is used.}
 
 \item{.callback_fn}{A function for keeping track of progress. Internal use.}
 
@@ -46,7 +55,7 @@ with one A trial, and 2 B trials. However, the phase string "2A/1B" will
 not result in miniblocks, even if miniblocks here is set to TRUE.
 }
 \examples{
-des <- data.frame(Group = "G1", P1 = "10A>(US)", R1 = TRUE)
+des <- data.frame(Group = "G1", P1 = "10A>(US)")
 ps <- get_parameters(des, model = "HD2022")
 make_experiment(
   design = des, parameters = ps,

@@ -17,95 +17,198 @@
   }, simplify = FALSE)
 }
 
+# unnests a list containing named lists of ragged arrays
+.unnest_nested_raw_list <- function(raw) {
+  data.table::rbindlist(lapply(seq_along(raw), function(tr) {
+    stims <- names(raw[[tr]])
+    do.call(rbind, lapply(stims, function(entry) {
+      holder <- data.table::data.table(
+        tie = tr,
+        V0 = entry,
+        as.table(raw[[tr]][[entry]])
+      )
+      # hack to shift names because V1 is not the trial
+      names(holder) <- c("tie", paste0("V", 2:(2 + ncol(holder) - 2)))
+      holder
+    }))
+  }))
+}
+
+# ^look above for a perhaps slower, but much simpler implementation
 .unnest_raw_list <- function(raw) {
   dims <- lapply(raw, dim)
   udims <- unique(dims)
   matches <- lapply(udims, function(u) {
     which(unlist(lapply(dims, function(d) all(d == u))))
   })
+  # collapse into 2d array going through each unique dimensionality
+  # really need to keep an eye on this function
+  # when applying to models other than HeiDI
+  # it creates many problems that will go undetected
   raw <- data.table::rbindlist(lapply(matches, function(m) {
-    data.table::as.data.table(aperm(simplify2array(raw[m]), c(3, 1, 2)))
+    hold <- data.table::as.data.table(aperm(simplify2array(raw[m]), c(3, 1, 2)))
+    hold[, "V2" := unlist(lapply(
+      raw[m],
+      function(i) rep(rownames(i), ncol(i))
+    ))]
   }))
   # now need to put the trials back
-  raw[, "V1" := rep(unlist(matches), sapply(dims, prod))]
-  names(raw)[names(raw) == "V1"] <- "tie"
+  # create the trial pointers according to matches and their dimensionality
+  tps <- c(unlist(sapply(seq_along(matches), function(d) {
+    rep(matches[[d]], each = prod(udims[[d]]))
+  })))
+  # put them into the data
+  raw[, "V1" := tps]
+  names(raw)[names(raw) == "V1"] <- "tie" # rename
   raw
 }
 
-.parse_raw_data_table <- function(raw, type, experience, model) {
+# for outputs containing ND arrays (e.g., trial, s, s)
+.parse_nd <- function(raw, type, experience, model) {
   # local bindings
   tie <- NULL
-
-  # outputs containing three dimensional arrays (trial, s, s)
-  threes <- c(
-    "es", "vs", "eivs",
-    "acts", "heidi_acts", "relacts", "rs", "os",
-    "m_ij", "ncs", "anccrs", "cws",
-    "psrcs", "das", "qs", "ps"
-  )
-  # get general data
-  gen_dat <- data.table::as.data.table(experience)
-  # necessary for join
-  gen_dat[, "tie" := seq_len(nrow(gen_dat))]
-  if (!is.list(raw)) {
-    raw2d <- data.table::as.data.table(raw)
-    if (length(dim(raw)) > 2) {
-      raw2d[, "tie" := rep(seq_len(nrow(gen_dat)),
-        each = prod(dim(raw)[-1])
-      )]
-    }
-  } else {
-    # special treatment for ragged arrays
-    if (type == "heidi_acts") {
-      raw2d <- data.table::rbindlist(
-        sapply(names(raw), function(r) {
-          hold <- .unnest_raw_list(raw[[r]])
-          hold[, "type" := r]
-        }, simplify = FALSE)
-      )
-    } else {
-      raw2d <- data.table::rbindlist(
-        sapply(names(raw), function(r) {
-          hold <- data.table::as.data.table(raw[[r]])
-          hold[, "type" := r]
-          if (length(dim(raw[[r]]) > 3)) {
-            hold[, "tie" := rep(seq_len(nrow(gen_dat)),
-              each = prod(dim(raw[[r]])[-1])
-            )]
-          }
-        }, simplify = FALSE)
-      )
-    }
-  }
-  if (type %in% threes) {
-    # now join
-    full_dat <- gen_dat[raw2d, on = list(tie)]
-    # renaming
-    if (type %in% c("os")) {
-      # the only model output that does not follow Var1 = s1, Var2 = s2
-      full_dat <- .rename(full_dat, c("V2", "V3", "V4"), c("s1", "comp", "s2"))
-    } else {
-      full_dat <- .rename(full_dat, c("V2", "V3"), c("s1", "s2"))
-    }
-  } else {
-    # need to melt, but no need to name
-    full_dat <- cbind(gen_dat, raw2d)
-    full_dat <- data.table::melt(full_dat,
-      id.vars = names(gen_dat),
-      measure.vars = names(raw),
-      variable.name = "s1"
-    )
-  }
-  # renaming
-  full_dat <- .rename(full_dat, "tn", "trial_type")
-  # get rid of tie columns
-  full_dat <- full_dat[, -c("tie")]
-  # get rid of V1 if around
-  if ("V1" %in% names(full_dat)) {
-    full_dat <- full_dat[, -c("V1")]
-  }
-
+  # generic data
+  gen_dat <- .get_gen_dat(experience, model)
+  # join with general data
+  raw2d <- .make_raw_2d(raw, gen_dat)
+  full_dat <- gen_dat[raw2d, on = list(tie)]
+  # post process
+  full_dat <- .post_process_data_table(full_dat, model, type)
   full_dat
+}
+
+
+.parse_typed_ragged <- function(raw, type, experience, model) {
+  # local bindings
+  tie <- NULL
+  # generic data
+  gen_dat <- .get_gen_dat(experience, model)
+  # join with general data
+  raw2d <- data.table::rbindlist(
+    sapply(names(raw), function(r) {
+      hold <- .unnest_raw_list(raw[[r]])
+      hold[, "type" := r]
+    }, simplify = FALSE)
+  )
+  full_dat <- gen_dat[raw2d, on = list(tie)]
+  # post process
+  full_dat <- .post_process_data_table(full_dat, model, type)
+  full_dat
+}
+
+.parse_nested_ragged <- function(raw, type, experience, model) {
+  # local bindings
+  tie <- NULL
+  # generic data
+  gen_dat <- .get_gen_dat(experience, model)
+  # join with general data
+  raw2d <- .unnest_nested_raw_list(raw)
+  full_dat <- gen_dat[raw2d, on = list(tie)]
+  # post process
+  full_dat <- .post_process_data_table(full_dat, model, type)
+  full_dat
+}
+
+.parse_typed <- function(raw, type, experience, model) {
+  # local bindings
+  tie <- NULL
+  # generic data
+  gen_dat <- .get_gen_dat(experience, model)
+  # join with general data
+  raw2d <- data.table::rbindlist(
+    sapply(names(raw), function(r) {
+      hold <- data.table::as.data.table(raw[[r]])
+      hold[, "type" := r]
+      if (length(dim(raw[[r]]) > 3)) {
+        hold[, "tie" := rep(seq_len(nrow(gen_dat)),
+          each = prod(dim(raw[[r]])[-1])
+        )]
+      }
+    }, simplify = FALSE)
+  )
+  full_dat <- gen_dat[raw2d, on = list(tie)]
+  # post process
+  full_dat <- .post_process_data_table(full_dat, model, type)
+  full_dat
+}
+
+# for outputs containing 2D arrays (e.g., trial, s)
+.parse_2d <- function(raw, type, experience, model) {
+  # generic data
+  gen_dat <- .get_gen_dat(experience, model)
+  raw2d <- data.table::as.data.table(raw)
+  # need to melt, but no need to name
+  full_dat <- cbind(gen_dat, raw2d)
+  full_dat <- data.table::melt(full_dat,
+    id.vars = names(gen_dat),
+    measure.vars = names(raw),
+    variable.name = "s1"
+  )
+  # post process
+  full_dat <- .post_process_data_table(full_dat, model, type)
+  full_dat
+}
+
+.post_process_data_table <- function(dat, model, type) {
+  # renaming
+  dat <- .name_data(dat, model, type)
+  # get rid of tie columns
+  if ("tie" %in% names(dat)) {
+    dat <- dat[, -c("tie")]
+  }
+  # get rid of V1 if around
+  if ("V1" %in% names(dat)) {
+    dat <- dat[, -c("V1")]
+  }
+  # turn t_bin into a numeric
+  if ("t_bin" %in% names(dat)) {
+    dat$t_bin <- as.numeric(dat$t_bin)
+  }
+  dat
+}
+
+.name_data <- function(dat, model, type) {
+  dname_map <- dnames_map()
+  newnames <- dname_map[[model]][[type]]
+  dat <- .rename(
+    dat,
+    paste0("V", seq_along(newnames) + 1),
+    newnames
+  )
+  dat <- .rename(dat, "tn", "trial_type")
+  dat
+}
+
+.get_gen_dat <- function(experience, model) {
+  gen_dat <- data.table::as.data.table(experience)
+  if (model == "TD") {
+    # deal with experiences for the TD model
+    gen_dat[, c(
+      "stimulus", "time", "rtime",
+      "duration", "b_from", "b_to"
+    ) := NULL]
+    gen_dat <- unique(gen_dat)
+  }
+  gen_dat[, "tie" := seq_len(nrow(gen_dat))]
+  gen_dat
+}
+
+.make_raw_2d <- function(raw, gen_dat) {
+  raw2d <- data.table::as.data.table(raw)
+  raw2d[, "tie" := rep(
+    seq_len(nrow(gen_dat)),
+    each = prod(dim(raw)[-1])
+  )]
+  raw2d
+}
+
+.parse_raw_data_table <- function(raw, type, experience, model) {
+  # this function just redirects raw data to its parser
+  parse_fn_map <- parse_map()
+  do.call(
+    parse_fn_map[[model]][[type]],
+    list(raw = raw, type = type, experience = experience, model = model)
+  )
 }
 
 #' Aggregate CalmrExperiment results
@@ -141,7 +244,9 @@
     # put data together
     big_dat <- data.table::rbindlist(lapply(res, "[[", o))
     # aggregate
-    agg_dat <- .aggregate_results_data_table(big_dat, type = o)
+    agg_dat <- .aggregate_results_data_table(big_dat,
+      model = experiment@model, type = o
+    )
     agg_dat$model <- experiment@model
     agg_dat
   }, simplify = FALSE)
@@ -149,29 +254,19 @@
 }
 
 # type is the type of data
-.aggregate_results_data_table <- function(dat, type) {
-  value <- NULL # local binding
+.aggregate_results_data_table <- function(dat, model, type) {
+  value <- time <- NULL # local binding
+  common_terms <- c("group", "phase", "trial_type", "trial", "block_size", "s1")
+  fmap <- formula_map()
+  form <- c(common_terms, fmap[[model]][[type]])
   dat <- data.table::data.table(dat)
-  # define base terms for aggregation formula
-  no_s2 <- c("as", "e_ij", "e_i", "m_i", "delta")
-  terms <- c(
-    "group", "phase", "trial_type",
-    "trial", "s1", "s2", "block_size"
-  )
-  if ("time" %in% names(dat)) {
-    terms <- c(terms, "time")
+  if (!("time" %in% names(dat))) {
+    data.table::setDT(dat)[, list("value" = mean(value)), by = form]
+  } else {
+    data.table::setDT(dat)[, lapply(.SD, mean, na.rm = TRUE),
+      by = form, .SDcols = c("value", "time")
+    ]
   }
-  if (type %in% no_s2) {
-    terms <- terms[!(terms == "s2")]
-  }
-  if ("type" %in% names(dat)) {
-    terms <- c(terms, "type")
-  }
-  if (type %in% c("os")) {
-    terms <- c(terms, "comp")
-  }
-  form <- paste0(terms, collapse = ",")
-  data.table::setDT(dat)[, list("value" = mean(value)), by = form]
 }
 
 .rename <- function(x, from, to) {

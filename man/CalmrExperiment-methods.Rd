@@ -13,6 +13,8 @@
 \alias{parameters<-}
 \alias{experiences,CalmrExperiment-method}
 \alias{experiences}
+\alias{experiences<-,CalmrExperiment-method}
+\alias{experiences<-}
 \alias{results,CalmrExperiment-method}
 \alias{results}
 \alias{raw_results,CalmrExperiment-method}
@@ -28,6 +30,12 @@
 \alias{plot}
 \alias{graph,CalmrExperiment-method}
 \alias{graph}
+\alias{timings,CalmrExperiment-method}
+\alias{timings}
+\alias{timings<-,CalmrExperiment-method}
+\alias{timings<-}
+\alias{filter,CalmrExperiment-method}
+\alias{filter}
 \title{CalmrExperiment methods}
 \usage{
 \S4method{show}{CalmrExperiment}(object)
@@ -42,6 +50,8 @@
 
 \S4method{experiences}{CalmrExperiment}(x)
 
+\S4method{experiences}{CalmrExperiment}(x) <- value
+
 \S4method{results}{CalmrExperiment}(object)
 
 \S4method{raw_results}{CalmrExperiment}(object)
@@ -54,9 +64,15 @@
 
 \S4method{aggregate}{CalmrExperiment}(x, outputs = NULL)
 
-\S4method{plot}{CalmrExperiment}(x, type = NULL)
+\S4method{plot}{CalmrExperiment}(x, type = NULL, ...)
 
 \S4method{graph}{CalmrExperiment}(x, ...)
+
+\S4method{timings}{CalmrExperiment}(x)
+
+\S4method{timings}{CalmrExperiment}(x) <- value
+
+\S4method{filter}{CalmrExperiment}(x, trial_types = NULL, phases = NULL, stimuli = NULL)
 }
 \arguments{
 \item{object, x}{A \code{CalmrExperiment} object.}
@@ -68,7 +84,14 @@
 \item{type}{A character vector specifying the type(s) of plots to create.
 Defaults to NULL. See \link{supported_plots}.}
 
-\item{...}{Extra arguments passed to \code{\link[=calmr_model_graph]{calmr_model_graph()}}.}
+\item{...}{Extra arguments passed to \code{\link[=calmr_model_graph]{calmr_model_graph()}}
+and \code{\link[=calmr_model_plot]{calmr_model_plot()}}.}
+
+\item{trial_types}{A character vector with trial types to filter.}
+
+\item{phases}{A character vector with phase names to filter.}
+
+\item{stimuli}{A character vector with stimulus names to filter.}
 }
 \value{
 \code{show()} returns NULL (invisibly).
@@ -84,6 +107,8 @@ contained in the object.
 
 \code{experiences()} returns a list of \code{data.frame} objects
 containing model training routines.
+
+\verb{experiences()<-} returns the object after updating experiences.
 
 \code{results()} returns a \code{data.table} objects with aggregated results.
 
@@ -102,7 +127,18 @@ of the experiment (groups by iterations).
 \code{plot()} returns a list of 'ggplot' plot objects.
 
 \code{graph()} returns a list of 'ggplot' plot objects.
+
+\code{timings()} returns the list of timings
+contained in the object.
+
+\verb{timings()<-} returns the object after updating timings.
+
+\code{filter()} returns the object after filtering
+parsed aggregated results
 }
 \description{
 S4 methods for \code{CalmrExperiment} class.
+}
+\seealso{
+\code{\link[=plotting_functions]{plotting_functions()}},\code{\link[=calmr_model_plot]{calmr_model_plot()}},\code{\link[=calmr_model_graph]{calmr_model_graph()}}
 }

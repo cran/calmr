@@ -23,7 +23,7 @@ knitr::opts_chunk$set(
 ## Running experiments in parallel
 
 With the advent of time-based models, version 0.51 of `calmr` uses the `future` package to parallelize some operations.
-Thanks to the design philosophy of `future`, running things in parallel takes a single line of code.
+Thanks to the design philosophy of `future`, running things in parallel will take you a single line of code.
 
 ### Why run things in parallel?
 
@@ -32,7 +32,7 @@ because our design contains enough kinds of trials so that order effects are a w
 because we want to run the same model with different parameters.
 
 Let's run the HeiDI model [@honey_heidi_2020] over a long, random design.
-Let's also enable verbosity via `calmr_verbosity`, which uses the cool `progressr` package.
+Let's also enable verbosity via `calmr_verbosity()`, which uses the `progressr` package.
 
 ```{r setup}
 library(calmr)
@@ -40,8 +40,7 @@ library(calmr)
 # calmr_verbosity(TRUE)
 pav_inhib <- data.frame(
   group = "group",
-  phase1 = "50(US)/50AB/50#A",
-  rand1 = TRUE
+  phase1 = "!50(US)/50AB/50#A"
 )
 # set options to introduce more randomness
 pars <- get_parameters(pav_inhib, model = "HDI2020")
@@ -59,13 +58,13 @@ end <- proc.time() - start
 end
 ```
 
-You can see the timings above, under the `elapsed` column. 
 Let's try parallelizing now.
 
 ### Running an experiment in parallel
 
 To run the same experiment, but in parallel, you need to enable a `future` plan.
-A "plan" is one of many ways the `future` package can parallelize things (you should consult their documentation).
+A "plan" is one of many ways the `future` package can parallelize things 
+(you should really consult their documentation).
 Regardless, if you are running `calmr` on a single computer, you'll be using `plan(multisession)`
 
 ```{r}
@@ -81,11 +80,12 @@ end
 plan(sequential)
 ```
 
-In this case, the parallel evaluation was slower.
-The `future` package trades off ease of use for bulkier overheads. 
-As those overheads tend to be constant, 
+In this case, the parallel evaluation was faster (see *user* time above).
+
+The `future` package trades off ease of use for bulkier overheads, 
+but as the overheads tend to be constant, 
 the parallelization will have a better payoff once you run 
-more iterations.
+more and more iterations.
 
 
 

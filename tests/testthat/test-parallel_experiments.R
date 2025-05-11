@@ -2,8 +2,7 @@
 
 df <- data.frame(
   Group = c("True"),
-  P1 = c("2AB(US)/2AC"),
-  R1 = TRUE
+  P1 = c("!2AB(US)/2AC")
 )
 pars <- get_parameters(df, model = "RW1972")
 
@@ -39,7 +38,7 @@ test_that(".parallel_standby message works", {
   future::plan(future::multisession)
   pb <- progressr::progressor(1)
   expect_silent(progressr::with_progress({
-    .parallel_standby(pb)
+    calmr:::.parallel_standby(pb)
     for (p in 1) {
       pb()
     }

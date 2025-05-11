@@ -328,7 +328,7 @@ trial as a function of learning (note the lack of <span class="math inline">\(\D
 equal to the difference of the absolute global error, via:</p>
 <p><span class="math display">\[
 \tag{Eq.3}
-\Delta \alpha_{i} = x_i \sum_{j}^{K}\gamma_j(|\lambda_j - e_j|)
+\alpha_{i} = x_i \sum_{j}^{K}\gamma_j(|\lambda_j - e_j|)
 \]</span> where <span class="math inline">\(\gamma_j\)</span> denotes
 the contribution of the prediction error based on the jth stimulus. In
 this regard, it is important to note that <span class="citation">Pearce
@@ -345,15 +345,15 @@ simple “AB&gt;(US)” design, setting <span class="math inline">\(\gamma_{US}\
 <p>The PKH1982 model improves upon the <span class="citation">Pearce
 &amp; Hall (1980)</span> model by adding an extra parameter that
 controls the rate at which associability changes. If we qualify the
-changes in associability determined by Eq.3 via <span class="math inline">\(\Delta\alpha_{i}^{n}\)</span> (meaning they
-happened after trial <span class="math inline">\(n\)</span>), then we
-can quantify the total associability of stimulus <span class="math inline">\(i\)</span> after trial <span class="math inline">\(n\)</span> via:</p>
+changes in associability described by Eq.3 via <span class="math inline">\(\alpha_{i}^{n}\)</span> (meaning they happened
+after trial <span class="math inline">\(n\)</span>), then we can
+quantify the total associability of stimulus <span class="math inline">\(i\)</span> after trial <span class="math inline">\(n\)</span> via:</p>
 <p><span class="math display">\[
 \tag{Eq.4}
 \alpha_{i}^{n} =
 \begin{cases}
-  (1-\theta_i) \alpha_{i}^{n-1} + \theta_i\Delta\alpha_{j}^n
-&amp;\text{, if } x_i = 1\\
+  (1-\theta_i) \alpha_{i}^{n-1} + \theta_i\alpha_{j}^n &amp;\text{, if }
+x_i = 1\\
   \alpha_{i}^{n} &amp; \text{, otherwise}
 \end{cases}
 \]</span> where <span class="math inline">\(\theta_i\)</span> is a

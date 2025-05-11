@@ -31,8 +31,7 @@ can be later tested via its own \code{\link[=test]{test()}} method.
 # Comparing the associations in three models
 exp <- data.frame(
   Group = c("A", "B"),
-  P1 = c("2(A)>(US)/1B>(US)", "1(A)>(US)/2B>(US)"),
-  R1 = TRUE
+  P1 = c("!2(A)>(US)/1B>(US)", "!1(A)>(US)/2B>(US)")
 )
 models <- c("HD2022", "RW1972", "PKH1982")
 parameters <- sapply(models, get_parameters, design = exp)
@@ -40,9 +39,9 @@ exp_res <- compare_models(exp,
   models = models
 )
 comparisons <- list(
-  "HD2022" = c("vs"),
-  "RW1972" = c("vs"),
-  "PKH1982" = c("eivs")
+  "HD2022" = c("associations"),
+  "RW1972" = c("associations"),
+  "PKH1982" = c("associations")
 )
 res <- rsa(exp_res, comparisons = comparisons)
 test(res, n_samples = 20)

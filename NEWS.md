@@ -1,3 +1,24 @@
+# calmr 0.7.0
+* Corrected some issues in directional models.
+* Created a vignette to expose the behaviour of directional models.
+* Removed randomization column requirement from designs. Randomization of phases is now specified using the "!" character anywhere in the phase string. Using the old format throws a deprecation warning.
+* Added support for seed experiment generation in `make_experiment()`.
+* Added `set_calmr_palette()` function to control the colour/fill scales used to plot results ([#1](https://github.com/victor-navarro/calmr/issues/1)).
+* Added `filter()` method for `CalmrExperiment` class that allows filtering of aggregated data ([#1](https://github.com/victor-navarro/calmr/issues/1)).
+* Fixed bug in `make_experiment()` that was triggered by empty phases and no miniblocks.
+* Changed `get_timings()` to require a specific model name.
+* Added vignette for TD model.
+
+# calmr 0.6.2
+* Aggregation of ANCCR data now ignores time; time entries are averaged.
+* Added the Temporal Difference model under the name "TD". The model is in an experimental state.
+* Experiments for time-based models now require a separate list to construct time-based experiences. See `get_timings()`.
+* Added `experiences<-`, `timings`, `timings<-` methods for `CalmrExperiment` class.
+* Revamped plotting functions and parsing functions.
+* Revamped output names for all models to make them more intelligible.
+* Fixed a bug related to the aggregation of pools in HDI2020 and HD2022.
+* Consolidated some man pages.
+
 # calmr 0.6.1
 * Added `outputs` argument to `run_experiment()`, `parse()`, and `aggregate()`, allowing the user to parse/aggregate only some model outputs.
 * Documentation corrections for CRAN resubmission.
@@ -18,7 +39,7 @@
 # calmr 0.5.0
 * Implementation of ANCCR (Jeong et al., 2022), the first time-based model included in `calmr`.
 * Added parameter distinction between trial-wise and period-wise parameters.
-* Added internal augmentation of design/arguments depending on the model.
+* Added internal augmentation of arguments depending on the model.
 * All trial-based models do not use pre/post distinctions anymore. Using the ">" special character does not affect these models anymore.
 * The ">" special character is used to specify periods within a trial. For example, "A>B>C" implies A is followed by B which is followed by C. See the `using_time_models` vignette for additional information.
 * Named stimuli now support numbers trailing characters (e.g., "(US1)" is valid now.)

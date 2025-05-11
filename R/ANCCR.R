@@ -1,7 +1,9 @@
 #' Train the ANCCR model
 #'
 #' @param parameters A list containing the model parameters,
-#' as returned by get_parameters().
+#' as returned by `get_parameters()`.
+#' @param timings A list containing the design timings,
+#' as returned by `get_timings()`.
 #' @param experience A data.frame specifying trials as rows,
 #' as returned by `make_experiment`
 #' @param mapping A named list specifying trial and stimulus mapping,
@@ -14,7 +16,7 @@
 #' @note This model is in a highly experimental state. Use with caution.
 #' @noRd
 ANCCR <- function(
-    parameters, experience,
+    parameters, timings, experience,
     mapping, debug = FALSE, debug_t = -1, ...) {
   # TODO: Deal with omission as you would do with probe trials
 
@@ -42,12 +44,12 @@ ANCCR <- function(
 
   e_ij <- e_i <- m_i <- delta <- imcts <- array(0,
     dim = c(length(fsnames), nt),
-    dimnames = list(fsnames, seq_len(nt))
+    dimnames = list(fsnames, NULL)
   )
 
   m_ij <- prc <- src <- ncs <- anccrs <- cws <- das <- array(0, dim = c(
     length(fsnames), length(fsnames), nt
-  ), dimnames = list(fsnames, fsnames, seq_len(nt)))
+  ), dimnames = list(fsnames, fsnames, NULL))
 
   r <- array(0, dim = c(
     length(fsnames),
@@ -65,7 +67,7 @@ ANCCR <- function(
   if (is.na(parameters$t_constant)) {
     parameters$t_constant <- parameters$t_ratio *
       with(
-        parameters,
+        timings$trial_ts,
         sum(unlist(lapply(list(mean_ITI), mean)))
       )
   }
@@ -123,7 +125,7 @@ ANCCR <- function(
       }
       # Delta reset
       delta[event, timestep] <- 1
-      # Increment elegibility trace for the event that occurred by + 1
+      # Increment eligibility trace for the event that occurred by + 1
       e_ij[event, timestep] <- e_ij[event, timestep] + 1
       # Update predecessor representation
       m_ij[, event, timestep] <- m_ij[, event, timestep] + alphat *
@@ -205,7 +207,7 @@ ANCCR <- function(
       # }
       # Total dopamine
       tda <- sum(das[event, , timestep])
-      # Update meaningful causes index
+      # Update meaningful causal target index
       imct[event] <- imct[event] |
         (
           (tda + parameters$betas[event]) >
@@ -258,7 +260,7 @@ ANCCR <- function(
         }
         nextt <- timestep + 1
       }
-      # Update alpha of sample elegibility trace
+      # Update alpha of sample eligibility trace
       alphat <- .anccr_get_alpha(
         denom = numsampling + 1,
         parameters = parameters,
@@ -292,7 +294,7 @@ ANCCR <- function(
   ps <- exp(cqs) / (exp(0) + exp(cqs)) # nolint: object_usage_linter.
 
   # some reshaping before return
-  twos <- sapply(c("e_ij", "e_i", "m_i", "delta", "imcts"),
+  twos <- sapply(c("e_ij", "e_i", "m_i"),
     function(i) t(get(i)),
     simplify = FALSE
   )
@@ -309,9 +311,18 @@ ANCCR <- function(
     simplify = FALSE
   )
   # bundle prc and src
-  psrcs <- threes[c("prc", "src")]
+  psrcs <- list(PRC = threes$prc, SRC = threes$src)
   threes <- threes[c("m_ij", "ncs", "anccrs", "cws", "das", "qs", "ps")]
 
+  names(twos) <- c(
+    "ij_eligibilities", "i_eligibilities",
+    "i_base_rate"
+  )
+  names(threes) <- c(
+    "ij_base_rate", "net_contingencies",
+    "anccrs", "causal_weights", "dopamines", "action_values",
+    "probabilities"
+  )
 
-  c(twos, threes, list(psrcs = psrcs))
+  c(twos, threes, list(representation_contingencies = psrcs))
 }

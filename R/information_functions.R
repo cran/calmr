@@ -12,7 +12,7 @@
 #' head(pkh_func, 10)
 #'
 #' # Getting the parameters required by SM2007
-#' parameter_info("SM2007")
+#' model_parameters("SM2007")
 NULL
 #> NULL
 
@@ -22,8 +22,15 @@ NULL
 supported_models <- function() {
   c(
     "HDI2020", "HD2022", "RW1972", "MAC1975",
-    "PKH1982", "SM2007", "RAND", "ANCCR"
+    "PKH1982", "SM2007", "RAND", "ANCCR",
+    "TD"
   )
+}
+#' @rdname model_information
+#' @return `supported_timed_models()` returns a character vector.
+#' @export
+supported_timed_models <- function() {
+  c("ANCCR", "TD")
 }
 
 #' @rdname model_information
@@ -45,24 +52,11 @@ supported_families <- function() {
 #' (if model is NULL).
 #' @export
 supported_plots <- function(model = NULL) {
-  plot_info <- list(
-    "HDI2020" = c("as", "heidi_acts", "rs", "vs"),
-    "HD2022" = c("as", "heidi_acts", "rs", "vs"),
-    "RW1972" = c("rs", "vs"),
-    "MAC1975" = c("as", "rs", "vs"),
-    "SM2007" = c("acts", "relacts", "vs", "os"),
-    "PKH1982" = c("as", "rs", "eivs"),
-    "ANCCR" = c(
-      "e_ij", "e_i", "m_i", "delta", "m_ij",
-      "psrcs", "ncs", "anccrs", "cws", "das", "qs",
-      "ps"
-    ),
-    "RAND" = c("rs", "vs")
-  )
+  plot_info <- model_outputs()
   if (is.null(model)) {
     plot_info
   } else {
-    model <- .calmr_assert("supported_model", model)
+    model <- .assert_model(model)
     plot_info[[model]]
   }
 }
@@ -72,15 +66,15 @@ supported_plots <- function(model = NULL) {
 #' @export
 get_model <- function(model) {
   # Check model is supported
-  .calmr_assert("supported_model", model)
+  .assert_model(model)
   get(model)
 }
 
 #' @rdname model_information
-#' @return `parameter_info()` returns a list or a
+#' @return `model_parameters()` returns a list or a
 #' list of lists (if model is NULL).
 #' @export
-parameter_info <- function(model = NULL) {
+model_parameters <- function(model = NULL) {
   parameter_map <- list(
     "HDI2020" = list(
       name = c("alphas"),
@@ -117,28 +111,36 @@ parameter_info <- function(model = NULL) {
     ),
     "ANCCR" = list(
       name = c(
-        "transition_delay", "post_trial_delay",
-        "mean_ITI", "max_ITI", "reward_magnitude",
+        "reward_magnitude",
         "betas", "cost", "temperature",
         "threshold", "k",
         "w", "minimum_rate", "sampling_interval",
-        "use_exact_mean", "use_exponential",
-        "t_ratio", "t_constant", "t_jitter",
+        "use_exact_mean",
+        "t_ratio", "t_constant",
         "alpha", "alpha_reward", "use_timed_alpha",
         "alpha_exponent", "alpha_init", "alpha_min",
-        "add_beta"
+        "add_beta", "jitter"
       ),
       default_value = c(
-        1, 1,
-        30, 90, 1,
+        1,
         1, 0, 1,
         0.6, 1,
         0.5, 1e-3, 0.2,
-        FALSE, TRUE,
-        1.2, NA, 0.1,
+        FALSE,
+        1.2, NA,
         0.02, 0.2, FALSE,
         1, 1, 0,
-        FALSE
+        FALSE, 1
+      )
+    ),
+    "TD" = list(
+      name = c(
+        "alphas", "betas_on", "betas_off",
+        "lambdas", "gamma", "sigma"
+      ),
+      default_value = c(
+        0.05, 0.4, 0.4,
+        1, 0.95, 0.90
       )
     ),
     "RAND" = list(
@@ -153,6 +155,7 @@ parameter_info <- function(model = NULL) {
   }
 }
 
+
 # Returns whether a parameter is a global parameter
 .is_global_parameter <- function(parameter, model) {
   global_pars <- list(
@@ -162,35 +165,15 @@ parameter_info <- function(model = NULL) {
       "threshold", "k",
       "w", "minimum_rate",
       "sampling_interval",
-      "use_exact_mean", "use_exponential",
-      "t_ratio", "t_constant", "t_jitter",
+      "use_exact_mean",
+      "t_ratio", "t_constant",
       "alpha", "alpha_reward", "use_timed_alpha",
       "alpha_exponent", "alpha_init", "alpha_min",
-      "add_beta"
-    )
+      "add_beta", "jitter"
+    ),
+    "TD" = c("gamma", "sigma")
   )
   parameter %in% global_pars[[model]]
-}
-
-# Returns whether a parameter is a trial parameter
-.is_trial_parameter <- function(parameter, model) {
-  trial_pars <- list(
-    "ANCCR" = c(
-      "post_trial_delay",
-      "mean_ITI", "max_ITI"
-    )
-  )
-  parameter %in% trial_pars[[model]]
-}
-
-# Returns wheter a parameter is a transition parameter
-.is_trans_parameter <- function(parameter, model) {
-  trans_pars <- list(
-    "ANCCR" = c(
-      "transition_delay"
-    )
-  )
-  parameter %in% trans_pars[[model]]
 }
 
 #' @rdname model_information
@@ -199,23 +182,30 @@ parameter_info <- function(model = NULL) {
 #' @export
 model_outputs <- function(model = NULL) {
   output_info <- list(
-    "HDI2020" = c("as", "heidi_acts", "rs", "vs"),
-    "HD2022" = c("as", "heidi_acts", "rs", "vs"),
-    "RW1972" = c("rs", "vs"),
-    "MAC1975" = c("as", "rs", "vs"),
-    "SM2007" = c("acts", "relacts", "vs", "os"),
-    "PKH1982" = c("as", "rs", "eivs"),
-    "ANCCR" = c(
-      "e_ij", "e_i", "m_i", "delta", "m_ij",
-      "psrcs", "ncs", "anccrs", "cws", "das", "qs",
-      "ps"
+    "HDI2020" = c("activations", "associations", "pools", "responses"),
+    "HD2022" = c("activations", "associations", "pools", "responses"),
+    "RW1972" = c("associations", "responses"),
+    "MAC1975" = c("associabilities", "associations", "responses"),
+    "SM2007" = c(
+      "activations", "associations",
+      "relative_activations", "operator_switches"
     ),
-    "RAND" = c("rs", "vs")
+    "PKH1982" = c("associabilities", "associations", "responses"),
+    "ANCCR" = c(
+      "action_values", "anccrs",
+      "causal_weights", "dopamines",
+      "ij_eligibilities", "i_eligibilities",
+      "i_base_rate", "ij_base_rate",
+      "net_contingencies", "probabilities",
+      "representation_contingencies"
+    ),
+    "TD" = c("values", "associations", "eligibilities"),
+    "RAND" = c("associations", "responses")
   )
   if (is.null(model)) {
     output_info
   } else {
-    model <- .calmr_assert("supported_model", model)
+    model <- .assert_model(model)
     output_info[[model]]
   }
 }
@@ -223,14 +213,15 @@ model_outputs <- function(model = NULL) {
 # defining where the associations are in each model
 .model_associations <- function(model) {
   assoc_map <- c(
-    "HDI2020" = "vs",
-    "HD2022" = "vs",
-    "RW1972" = "vs",
-    "MAC1975" = "vs",
-    "SM2007" = "vs",
-    "PKH1982" = "eivs",
+    "HDI2020" = "associations",
+    "HD2022" = "associations",
+    "RW1972" = "associations",
+    "MAC1975" = "associations",
+    "SM2007" = "associations",
+    "PKH1982" = "associations",
     "ANCCR" = "anccrs",
-    "RAND" = "vs"
+    "TD" = "associations",
+    "RAND" = "associations"
   )
   assoc_map[model]
 }

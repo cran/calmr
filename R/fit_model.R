@@ -15,19 +15,19 @@
 #' @seealso [get_optimizer_opts()]
 #' @examples
 #' # Make some fake data
-#' df <- data.frame(g = "g", p1 = "3A>(US)", r1 = TRUE)
+#' df <- data.frame(g = "g", p1 = "!3A>(US)")
 #' pars <- get_parameters(df, model = "RW1972")
 #' pars$alphas["US"] <- 0.9
 #' exper <- make_experiment(df, parameters = pars, model = "RW1972")
-#' res <- run_experiment(exper, outputs = "rs")
-#' rs <- results(res)$rs$value
+#' res <- run_experiment(exper, outputs = "responses")
+#' responses <- results(res)$responses$value
 #'
 #' # define model function
 #' model_fun <- function(p, ex) {
 #'   np <- parameters(ex)
 #'   np[[1]]$alphas[] <- p
 #'   parameters(ex) <- np
-#'   results(run_experiment(ex))$rs$value
+#'   results(run_experiment(ex))$responses$value
 #' }
 #'
 #' # Get optimizer options
@@ -38,7 +38,7 @@
 #' )
 #' optim_opts$initial_pars[] <- rep(.6, 2)
 #'
-#' fit_model(rs, model_fun, optim_opts,
+#' fit_model(responses, model_fun, optim_opts,
 #'   ex = exper, method = "L-BFGS-B",
 #'   control = list(maxit = 1)
 #' )
@@ -46,9 +46,9 @@ fit_model <- function(
     data, model_function,
     optimizer_options, file = NULL, ...) {
   # check if the user passed lower and upper limits
-  .calmr_assert("limits", optimizer_options)
+  .assert_limits(optimizer_options)
   # check if user wants to save the fit in a file
-  if (!is.null(file)) .calmr_assert("filepath_OK", file)
+  if (!is.null(file)) .assert_filepath(file)
 
   # split the parameters
   model_par_pointers <- which(

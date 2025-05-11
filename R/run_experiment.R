@@ -31,7 +31,7 @@
 #' run_experiment(exper)
 #'
 #' # Only parsing the associations in the model, without aggregation
-#' run_experiment(exper, outputs = "vs", aggregate = FALSE)
+#' run_experiment(exper, outputs = "associations", aggregate = FALSE)
 #' @export
 
 run_experiment <- function(
@@ -40,25 +40,23 @@ run_experiment <- function(
     aggregate = TRUE, ...) {
   nargs <- list(...)
   if (!is_experiment(x)) {
-    # parse design
-    parsed_design <- parse_design(x)
     # make the experiment
     experiment <- make_experiment(
-      design = parsed_design, ...
+      design = x, ...
     )
   } else {
     experiment <- x
   }
   # sanitize nargs
   nargs <- nargs[!(names(nargs) %in% c(
-    "parameters",
+    "parameters", "timings",
     "experience", "mapping"
   ))]
   # sanitize outputs
   outputs <- .sanitize_outputs(outputs, experiment@model)
 
   # check if experiment needs (can) to be run
-  .calmr_assert("good_experiment", given = experiment)
+  .assert_experiment(experiment)
 
   # now run the experiment
   exp_length <- length(experiment)
@@ -72,7 +70,8 @@ run_experiment <- function(
       args <- c(list(
         experience = experiment@experiences[[i]],
         mapping = experiment@design@mapping,
-        parameters = experiment@parameters[[experiment@.group[i]]]
+        parameters = experiment@parameters[[experiment@.group[i]]],
+        timings = experiment@timings
       ), nargs)
       raw <- do.call(get_model(experiment@.model[i]), args)
       parsed <- NULL

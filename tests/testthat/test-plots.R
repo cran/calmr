@@ -1,17 +1,22 @@
 df <- data.frame(
   Group = "X",
-  P1 = "2A(US)",
-  R1 = TRUE
+  P1 = "!2A(US)"
 )
 df <- parse_design(df)
 models <- supported_models()
 
 # Test plots for every model
 for (m in models) {
+  if (m %in% supported_timed_models()) {
+    tims <- get_timings(df, model = m)
+  } else {
+    tims <- NULL
+  }
   ps <- supported_plots(m)
   res <- run_experiment(
     df,
     model = m,
+    timings = tims,
     parameters = get_parameters(design = df, model = m)
   )
   test_that(sprintf("all plots for model %s", m), {
@@ -42,4 +47,12 @@ test_that("patch_plot throws error with bad names", {
 })
 test_that("patch_plot throws error with bad numbers", {
   expect_error(patch_plots(plots, -3:-2))
+})
+
+
+test_that("can get default scales", {
+  default_scales <- c("colour_d", "colour_c", "fill_d", "fill_c")
+  for (s in default_scales) {
+    expect_no_error(.calmr_scales(s))
+  }
 })

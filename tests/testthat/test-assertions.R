@@ -1,49 +1,48 @@
-test_that(".calmr_assert warns with NULL model", {
-  expect_warning(.calmr_assert("supported_model", NULL))
+test_that("throws error with weird model", {
+  expect_error(.assert_model("Weird"))
 })
 
-test_that(".calmr_assert throws error with weird model", {
-  expect_error(.calmr_assert("supported_model", "Weird"))
+# this assertion is a placeholder for the future
+test_that("throws error with weird time model", {
+  expect_error(.assert_timed_model("Weird"))
+})
+# this assertion is a placeholder for the future
+test_that("is fine with time model", {
+  expect_no_error(.assert_timed_model("TD"))
 })
 
-test_that(".calmr_assert throws error with no design", {
-  expect_error(.calmr_assert("parsed_design", NULL))
+
+test_that("throws warning with no timings for a time-based model", {
+  expect_warning(make_experiment(get_design("blocking"),
+    model = "TD",
+    parameters = get_parameters(get_design("blocking"), model = "TD")
+  ))
 })
 
-test_that(".calmr_assert throws error with weird optimizer", {
-  expect_error(.calmr_assert("supported_optimizer", "Weird"))
+test_that("throws error with weird optimizer", {
+  expect_error(.assert_optimizer("Weird"))
 })
 
-test_that(".calmr_assert throws error with weird family", {
+test_that("throws error with weird family", {
   expect_error(.calmr_assert("supported_family", "Weird"))
 })
 
-test_that(".calmr_assert throws error for upper and lower limits with NAs", {
-  expect_error(.calmr_assert(
-    "limits_OK",
+test_that("throws error for upper and lower limits with NAs", {
+  expect_error(.assert_limits(
     list(ll = c(1, 2, 3), ul = c(NA, 1, 2))
   ))
 })
 
-test_that(".calmr_assert throws error for unsuported functional stimuli", {
+test_that("throws error for unsuported functional stimuli", {
   map <- parse_design(data.frame(
     g = "a",
-    p1 = "1(A_a)(US)/1(A_b)(US)", r1 = TRUE
+    p1 = "!1(A_a)(US)/1(A_b)(US)"
   ))@mapping
-  expect_error(.calmr_assert(
-    "no_functional_stimuli", map
-  ))
+  expect_error(.assert_no_functional(map))
 })
 
-test_that(".calmr_assert throws error for nonexistent folder", {
-  expect_error(.calmr_assert("filepath_OK", "my_folders/none.jpg"))
-})
-
-test_that(".calmr_assert throws error for unsupported plot", {
-  expect_error(.calmr_assert("supported_plot",
-    letters[4],
-    supported = letters[1:3]
-  ))
+test_that("sthrows error for nonexistent folder", {
+  expect_error(.assert_filepath("my_folders/none.jpg"))
 })
 
 test_that(".sanitize_outputs returns all outputs if outputs are null", {
@@ -51,9 +50,12 @@ test_that(".sanitize_outputs returns all outputs if outputs are null", {
 })
 
 test_that(".sanitize_outputs throws warning for extra outputs", {
-  expect_warning(.sanitize_outputs(c("vs", "acts"), "RW1972"))
+  expect_warning(.sanitize_outputs(c("associations", "activations"), "RW1972"))
 })
 
 test_that(".sanitize_outputs does not add extra outputs", {
-  expect_setequal(.sanitize_outputs(c("vs"), "RW1972"), "vs")
+  expect_setequal(
+    .sanitize_outputs(c("associations"), "RW1972"),
+    "associations"
+  )
 })

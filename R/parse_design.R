@@ -1,59 +1,79 @@
 #' Parse design data.frame
-#' @param df A `data.frame` of dimensions (groups) by (2*phases+1).
-#' @param model (Optional) model to augment the design.
-#' @param ... Other arguments passed to augment function.
+#' @param df A `data.frame` of dimensions (groups) by (phases+1).
 #' @return A [CalmrDesign-class] object.
 #' @note Each entry in even-numbered columns of df is
 #' a string formatted as per [phase_parser()].
 #' @examples
 #' df <- data.frame(
 #'   Group = c("Group 1", "Group 2"),
-#'   P1 = c("10AB(US)", "10A(US)"), R1 = c(TRUE, TRUE)
+#'   P1 = c("10AB(US)", "10A(US)")
 #' )
 #' parse_design(df)
 #' @seealso [phase_parser()]
 #' @export
 
-parse_design <- function(df, model = NULL, ...) {
-  if (!is.null(model)) {
-    .calmr_assert("length", 1, model = model)
+parse_design <- function(df) {
+  # assert at least two columns
+  if (ncol(df) < 2) {
+    stop("Data frame must have at least two columns (1 group 1 phase).")
   }
-  # if already parsed, skip
-  if ("CalmrDesign" %in% class(df)) {
-    design_obj <- df
-    # augment if design hasn't been augmented
-    if (!is.null(model) && !df@augmented) {
-      design_obj <- augment(design_obj, model = model, ...)
-    }
-  } else {
-    ri <- seq(2, ncol(df), 2)
-    design <- apply(df, 1, function(r) {
-      sapply(ri, function(p) {
-        list(
-          group = r[[1]],
-          phase = names(df)[p],
-          parse_string = r[[p]],
-          randomize = r[[p + 1]],
-          phase_info = phase_parser(r[[p]])
-        )
-      }, simplify = FALSE)
+  # pass to compatibility function
+  df <- .design_compat(df)
+  design <- apply(df, 1, function(r) {
+    sapply(seq_len(ncol(df))[-1], function(p) {
+      list(
+        group = r[[1]],
+        phase = names(df)[p],
+        parse_string = r[[p]],
+        phase_info = phase_parser(r[[p]])
+      )
     }, simplify = FALSE)
-    # unnest one level (now group:phase is flat now)
-    design <- unlist(design, recursive = FALSE, use.names = FALSE)
-    # That's the easy part
-    # The hard part is to create the mapping for the experiment
-    map <- .get_mapping(design)
+  }, simplify = FALSE)
+  # unnest one level (now group:phase is flat now)
+  design <- unlist(design, recursive = FALSE, use.names = FALSE)
+  # That's the easy part
+  # The hard part is to create the mapping for the experiment
+  map <- .get_mapping(design)
 
-    # create design object
-    design_obj <- methods::new("CalmrDesign",
-      design = design, mapping = map, raw_design = df
+  methods::new("CalmrDesign",
+    design = design, mapping = map, raw_design = df
+  )
+}
+
+.design_compat <- function(df) {
+  # checks if the data.frame uses <0.7.0 format with a randomization column.
+  # If so, it throws a deprecation warning and modifies the data.frame
+
+  # check if any columns contain boolean values
+  col_classes <- sapply(df, class)
+  if (any(col_classes == "logical")) {
+    # check if any of the boolean columns are named "randomization
+    # raise warning
+    lifecycle::deprecate_warn(
+      when = "0.7.0",
+      what = "parse_design(df = 'must not contain randomization columns')",
+      details = "Please use the new format using '!'
+      and no randomization column.
+      (e.g., !10A/10B)",
+      always = TRUE
     )
-    # augment design if required
-    if (!is.null(model)) {
-      design_obj <- augment(design_obj, model = model, ...)
-    }
+
+    # get randomization symbols
+    is_random <- which(col_classes == "logical")
+    df[is_random] <- sapply(df[is_random], function(col) {
+      ifelse(col, "!", "")
+    })
+    # paste the columns
+    df[is_random - 1] <- sapply(
+      is_random,
+      function(i) {
+        paste0(df[[i]], df[[i - 1]])
+      }
+    )
+    # remove the randomization columns
+    df <- df[, -is_random]
   }
-  design_obj
+  df
 }
 
 .get_mapping <- function(design) {
@@ -114,11 +134,11 @@ parse_design <- function(df, model = NULL, ...) {
   # make one-hot vectors
   # period based
   period_onehots <- lapply(funcs, function(t) {
-    lapply(t, one_hot, stimnames = uni_fun)
+    lapply(t, .one_hot, stimnames = uni_fun)
   })
   # trial based
   trial_onehots <- lapply(funcs, function(t) {
-    one_hot(unique(unlist(t)), stimnames = uni_fun)
+    .one_hot(unique(unlist(t)), stimnames = uni_fun)
   })
 
   list(
@@ -138,6 +158,6 @@ parse_design <- function(df, model = NULL, ...) {
 }
 
 # Makes a onehot representation of the stimulus vector, given all stimuli
-one_hot <- function(s, stimnames) {
-  return(stats::setNames(as.numeric(stimnames %in% s), stimnames))
+.one_hot <- function(s, stimnames) {
+  stats::setNames(as.numeric(stimnames %in% s), stimnames)
 }

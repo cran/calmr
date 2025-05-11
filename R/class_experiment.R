@@ -5,11 +5,13 @@
 #' \item{\code{model}:}{A string specifying the model used.}
 #' \item{\code{groups}:}{A string specifying the groups in the design.}
 #' \item{\code{parameters}:}{A list with the parameters used, per group.}
+#' \item{\code{timings}:}{A list with the timings used in the design.}
 #' \item{\code{experiences}:}{A list with the experiences for the model.}
 #' \item{\code{results}:}{A [CalmrExperimentResult-class] object.}
 #' \item{\code{.model}:}{Internal. The model associated with the iteration.}
 #' \item{\code{.group}:}{Internal. The group associated with the iteration.}
 #' \item{\code{.iter}:}{Internal. The iteration number.}
+#' \item{\code{.seed}:}{The seed used to generate the experiment.}
 #' }
 #' @rdname CalmrExperiment
 #' @exportClass CalmrExperiment
@@ -22,13 +24,16 @@ methods::setClass(
     model = "character",
     groups = "character",
     parameters = "list",
+    timings = "list",
     experiences = "list",
     results = "CalmrExperimentResult",
     .model = "character",
     .group = "character",
-    .iter = "integer"
+    .iter = "integer",
+    .seed = "ANY"
   )
 )
+
 
 #' CalmrExperiment methods
 #' @description S4 methods for `CalmrExperiment` class.
@@ -37,8 +42,10 @@ methods::setClass(
 #' @param type A character vector specifying the type(s) of plots to create.
 #' Defaults to NULL. See [supported_plots].
 #' @param value A list of parameters (or list of parameter lists).
-#' @param ... Extra arguments passed to [calmr_model_graph()].
+#' @param ... Extra arguments passed to [calmr_model_graph()]
+#' and [calmr_model_plot()].
 #' @name CalmrExperiment-methods
+#' @seealso [plotting_functions()],[calmr_model_plot()],[calmr_model_graph()]
 NULL
 #> NULL
 
@@ -149,6 +156,26 @@ methods::setGeneric(
 methods::setMethod(
   "experiences", "CalmrExperiment",
   function(x) x@experiences
+)
+#' @noRd
+methods::setGeneric(
+  "experiences<-",
+  function(x, value) standardGeneric("experiences<-") # nocov
+)
+#' @rdname CalmrExperiment-methods
+#' @return `experiences()<-` returns the object after updating experiences.
+#' @aliases experiences<-
+#' @export
+methods::setMethod(
+  "experiences<-", "CalmrExperiment",
+  function(x, value) {
+    stopifnot(
+      "value must be either 1 or length(experiences(x))" =
+        length(value) == 1 || length(value) == length(experiences(x))
+    )
+    x@experiences <- value
+    x
+  }
 )
 #' @noRd
 methods::setGeneric(
@@ -270,7 +297,7 @@ setGeneric("plot", function(x, y, ...) methods::standardGeneric("plot")) # nocov
 #' @rdname CalmrExperiment-methods
 setMethod(
   "plot", "CalmrExperiment",
-  function(x, type = NULL) {
+  function(x, type = NULL, ...) {
     # Assert type is valid
     throw_warn <- FALSE
     model_plots <- .sanitize_outputs(type, x@model)
@@ -295,9 +322,9 @@ setMethod(
       pdat <- odat[odat$model == x@model, ]
       groups <- unique(pdat$group)
       for (g in groups) {
-        plot_name <- sprintf("%s - %s (%s)", g, .get_prettyname(p), x@model)
+        plot_name <- sprintf("%s - %s (%s)", g, .get_y_prettyname(p), x@model)
         plots[[plot_name]] <- calmr_model_plot(pdat[pdat$group == g, ],
-          type = p
+          type = p, model = x@model, ...
         )
       }
     }
@@ -315,8 +342,8 @@ setMethod(
 #' @noRd
 setGeneric("graph", function(x, ...) standardGeneric("graph")) # nocov
 #' @rdname CalmrExperiment-methods
-#' @return `graph()` returns a list of 'ggplot' plot objects.
 #' @aliases graph
+#' @return `graph()` returns a list of 'ggplot' plot objects.
 #' @export
 setMethod("graph", "CalmrExperiment", function(x, ...) {
   if (is.null(x@results@aggregated_results)) {
@@ -331,9 +358,9 @@ setMethod("graph", "CalmrExperiment", function(x, ...) {
     assoc_output <- .model_associations(m)
     odat <- res[[assoc_output]]
     weights <- odat[odat$model == m, ]
-    if (assoc_output == c("eivs")) {
-      evs <- weights[weights$type == "evs", ]
-      ivs <- weights[weights$type == "ivs", ]
+    if (x@model == "PKH1982") {
+      evs <- weights[weights$type == "EV", ]
+      ivs <- weights[weights$type == "IV", ]
       weights <- evs
       weights$value <- weights$value - ivs$value
     }
@@ -348,4 +375,90 @@ setMethod("graph", "CalmrExperiment", function(x, ...) {
     graphs[[m]] <- mgraphs
   }
   graphs
+})
+
+#' @noRd
+methods::setGeneric(
+  "timings",
+  function(x) standardGeneric("timings") # nocov
+)
+#' @noRd
+methods::setGeneric(
+  "timings<-",
+  function(x, value) standardGeneric("timings<-") # nocov
+)
+#' @rdname CalmrExperiment-methods
+#' @return `timings()` returns the list of timings
+#' contained in the object.
+#' @aliases timings
+#' @export
+methods::setMethod(
+  "timings", "CalmrExperiment",
+  function(x) x@timings
+)
+#' @rdname CalmrExperiment-methods
+#' @return `timings()<-` returns the object after updating timings.
+#' @aliases timings<-
+#' @export
+methods::setMethod("timings<-", "CalmrExperiment", function(x, value) {
+  .assert_timings(value, design(x), x@model)
+  x@timings <- value
+  x
+})
+
+#' @noRd
+setGeneric(
+  "filter",
+  function(x, ...) methods::standardGeneric("filter") # nolint: line_length_linter.
+) # nocov
+#' @rdname CalmrExperiment-methods
+#' @param trial_types A character vector with trial types to filter.
+#' @param phases A character vector with phase names to filter.
+#' @param stimuli A character vector with stimulus names to filter.
+#' @return `filter()` returns the object after filtering
+#' parsed aggregated results
+#' @aliases filter
+#' @export
+methods::setMethod("filter", "CalmrExperiment", function(
+    x,
+    trial_types = NULL,
+    phases = NULL, stimuli = NULL) {
+  if (is.null(x@results@aggregated_results)) {
+    stop(c(
+      "Experiment must have aggregated results. ",
+      "Use `aggregate` on your experiment first."
+    ))
+  }
+  res <- results(x)
+  # filter phases
+  if (!is.null(phases)) {
+    res <- lapply(
+      res,
+      function(r) r[r$phase %in% phases, ]
+    )
+  }
+  if (!is.null(trial_types)) {
+    res <- lapply(
+      res,
+      function(r) r[r$trial_type %in% trial_types, ]
+    )
+  }
+  if (!is.null(stimuli)) {
+    res <- lapply(
+      res,
+      function(r) r[r$s1 %in% stimuli, ]
+    )
+    res <- lapply(
+      res,
+      function(r) {
+        if ("s2" %in% names(r)) {
+          r[r$s2 %in% stimuli, ]
+        } else {
+          r
+        }
+      }
+    )
+  }
+  x@results@aggregated_results <- res
+  x
 })

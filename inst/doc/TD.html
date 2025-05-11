@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+<meta name="author" content="Victor Navarro" />
+
+
+<title>TD</title>
+
+<script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
+// be compatible with the behavior of Pandoc < 2.8).
+document.addEventListener('DOMContentLoaded', function(e) {
+  var hs = document.querySelectorAll("div.section[class*='level'] > :first-child");
+  var i, h, a;
+  for (i = 0; i < hs.length; i++) {
+    h = hs[i];
+    if (!/^h[1-6]$/i.test(h.tagName)) continue;  // it should be a header h1-h6
+    a = h.attributes;
+    while (a.length > 0) h.removeAttribute(a[0].name);
+  }
+});
+</script>
+
+<style type="text/css">
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+span.underline{text-decoration: underline;}
+div.column{display: inline-block; vertical-align: top; width: 50%;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+</style>
+
+
+
+
+
+
+<style type="text/css">
+
+div.csl-bib-body { }
+div.csl-entry {
+clear: both;
+margin-bottom: 0em;
+}
+.hanging div.csl-entry {
+margin-left:2em;
+text-indent:-2em;
+}
+div.csl-left-margin {
+min-width:2em;
+float:left;
+}
+div.csl-right-inline {
+margin-left:2em;
+padding-left:1em;
+}
+div.csl-indent {
+margin-left: 2em;
+}
+</style>
+
+<style type="text/css">body {
+background-color: #fff;
+margin: 1em auto;
+max-width: 700px;
+overflow: visible;
+padding-left: 2em;
+padding-right: 2em;
+font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+font-size: 14px;
+line-height: 1.35;
+}
+#TOC {
+clear: both;
+margin: 0 0 10px 10px;
+padding: 4px;
+width: 400px;
+border: 1px solid #CCCCCC;
+border-radius: 5px;
+background-color: #f6f6f6;
+font-size: 13px;
+line-height: 1.3;
+}
+#TOC .toctitle {
+font-weight: bold;
+font-size: 15px;
+margin-left: 5px;
+}
+#TOC ul {
+padding-left: 40px;
+margin-left: -1.5em;
+margin-top: 5px;
+margin-bottom: 5px;
+}
+#TOC ul ul {
+margin-left: -2em;
+}
+#TOC li {
+line-height: 16px;
+}
+table {
+margin: 1em auto;
+border-width: 1px;
+border-color: #DDDDDD;
+border-style: outset;
+border-collapse: collapse;
+}
+table th {
+border-width: 2px;
+padding: 5px;
+border-style: inset;
+}
+table td {
+border-width: 1px;
+border-style: inset;
+line-height: 18px;
+padding: 5px 5px;
+}
+table, table th, table td {
+border-left-style: none;
+border-right-style: none;
+}
+table thead, table tr.even {
+background-color: #f7f7f7;
+}
+p {
+margin: 0.5em 0;
+}
+blockquote {
+background-color: #f6f6f6;
+padding: 0.25em 0.75em;
+}
+hr {
+border-style: solid;
+border: none;
+border-top: 1px solid #777;
+margin: 28px 0;
+}
+dl {
+margin-left: 0;
+}
+dl dd {
+margin-bottom: 13px;
+margin-left: 13px;
+}
+dl dt {
+font-weight: bold;
+}
+ul {
+margin-top: 0;
+}
+ul li {
+list-style: circle outside;
+}
+ul ul {
+margin-bottom: 0;
+}
+pre, code {
+background-color: #f7f7f7;
+border-radius: 3px;
+color: #333;
+white-space: pre-wrap; 
+}
+pre {
+border-radius: 3px;
+margin: 5px 0px 10px 0px;
+padding: 10px;
+}
+pre:not([class]) {
+background-color: #f7f7f7;
+}
+code {
+font-family: Consolas, Monaco, 'Courier New', monospace;
+font-size: 85%;
+}
+p > code, li > code {
+padding: 2px 0px;
+}
+div.figure {
+text-align: center;
+}
+img {
+background-color: #FFFFFF;
+padding: 2px;
+border: 1px solid #DDDDDD;
+border-radius: 3px;
+border: 1px solid #CCCCCC;
+margin: 0 5px;
+}
+h1 {
+margin-top: 0;
+font-size: 35px;
+line-height: 40px;
+}
+h2 {
+border-bottom: 4px solid #f7f7f7;
+padding-top: 10px;
+padding-bottom: 2px;
+font-size: 145%;
+}
+h3 {
+border-bottom: 2px solid #f7f7f7;
+padding-top: 10px;
+font-size: 120%;
+}
+h4 {
+border-bottom: 1px solid #f7f7f7;
+margin-left: 8px;
+font-size: 105%;
+}
+h5, h6 {
+border-bottom: 1px solid #ccc;
+font-size: 105%;
+}
+a {
+color: #0033dd;
+text-decoration: none;
+}
+a:hover {
+color: #6666ff; }
+a:visited {
+color: #800080; }
+a:visited:hover {
+color: #BB00BB; }
+a[href^="http:"] {
+text-decoration: underline; }
+a[href^="https:"] {
+text-decoration: underline; }
+
+code > span.kw { color: #555; font-weight: bold; } 
+code > span.dt { color: #902000; } 
+code > span.dv { color: #40a070; } 
+code > span.bn { color: #d14; } 
+code > span.fl { color: #d14; } 
+code > span.ch { color: #d14; } 
+code > span.st { color: #d14; } 
+code > span.co { color: #888888; font-style: italic; } 
+code > span.ot { color: #007020; } 
+code > span.al { color: #ff0000; font-weight: bold; } 
+code > span.fu { color: #900; font-weight: bold; } 
+code > span.er { color: #a61717; background-color: #e3d2d2; } 
+</style>
+
+
+
+
+</head>
+
+<body>
+
+
+
+
+<h1 class="title toc-ignore">TD</h1>
+<h4 class="author">Victor Navarro</h4>
+
+
+
+<div id="the-mathematics-behind-td" class="section level1">
+<h1>The mathematics behind TD</h1>
+<p>The temporal difference (TD) model <span class="citation">(Sutton
+&amp; Barto, 1990)</span> is an extension of the ideas underlying the RW
+model <span class="citation">(Rescorla &amp; Wagner, 1972)</span>. Most
+notably the TD model abandons the construct of a “trial”, favoring
+instead time-based formulations. Also notable is the introduction of
+eligibility traces, which allow the model to bridge temporal gaps and
+deal with the credit assignment problem.</p>
+<p><em>Implementation note: As of <code>calmr</code> version
+<code>0.6.2</code>, stimulus representation in TD is based on complete
+serial compounds (i.e., time-specific stimulus elements entirely
+discriminable from each other), and the eligibility traces are of the
+replacing type.</em></p>
+<p><em>General Note: There are several descriptions of the TD model out
+there, however, all of the ones I found were opaque when it comes to
+implementation. Hence, the following description of the model has a
+focus on implementation details.</em></p>
+</div>
+<div id="maintaining-stimulus-representations" class="section level1">
+<h1>1 - Maintaining stimulus representations</h1>
+<p>TD maintains stimulus traces as eligibility traces. The eligibility
+of stimulus <span class="math inline">\(i\)</span> at time <span class="math inline">\(t\)</span>, <span class="math inline">\(e_i^t\)</span>, is given by:</p>
+<p><span class="math display">\[
+\tag{Eq. 1}
+e_i^t = e_i^{t-1} \sigma \gamma + x_i^t
+\]</span></p>
+<p>where <span class="math inline">\(\sigma\)</span> and <span class="math inline">\(\gamma\)</span> are decay and discount parameters,
+respectively, and <span class="math inline">\(x_i^t\)</span> is the
+activation of stimulus <span class="math inline">\(i\)</span> at time
+<span class="math inline">\(t\)</span> (1 or 0 for present and absent
+stimuli, respectively).</p>
+<p>Internally, <span class="math inline">\(e_i\)</span> is represented
+as a vector of length <span class="math inline">\(d\)</span>, where
+<span class="math inline">\(d\)</span> is the number of stimulus
+compounds (not in the general sense of the word compound, but in terms
+of complete serial compounds, or CSC). For example, a 2s stimulus in a
+model with a time resolution of 0.5s will have a <span class="math inline">\(d = 4\)</span>, and the second entry in that
+vector represents the eligibility of the compound active after the
+stimulus has been present for 1s.</p>
+<p>Similarly, <span class="math inline">\(x_i^t\)</span> entails the
+specific compound of stimulus <span class="math inline">\(i\)</span> at
+time <span class="math inline">\(t\)</span>, and not the general
+activation of <span class="math inline">\(i\)</span> at that time. For
+example, suppose two, 2s stimuli, <span class="math inline">\(A\)</span>
+and <span class="math inline">\(B\)</span> are presented with an overlap
+of 1s, with <span class="math inline">\(A\)</span>’s onset occurring
+first. Can you guess what stimulus compounds will be active at <span class="math inline">\(t = 2\)</span> with a time resolution of 0.5s?<a href="#fn1" class="footnote-ref" id="fnref1"><sup>1</sup></a></p>
+</div>
+<div id="generating-expectations" class="section level1">
+<h1>2 - Generating expectations</h1>
+<p>The TD model generates stimulus expectations<a href="#fn2" class="footnote-ref" id="fnref2"><sup>2</sup></a> based on the presented
+stimuli, <strong>not on the strength of eligibility traces</strong>. The
+expectation of of stimulus <span class="math inline">\(j\)</span> at
+time <span class="math inline">\(t\)</span>, <span class="math inline">\(V_j^t\)</span>, is given by:</p>
+<p><span class="math display">\[
+\tag{Eq. 2}
+V_j^t = w_j^{t&#39;} x^t = \sum_i^K w_{i,j}^t x_i^t
+\]</span></p>
+<p>Where <span class="math inline">\(w_j^t\)</span> is a matrix of
+stimulus weights at time <span class="math inline">\(t\)</span> pointing
+towards <span class="math inline">\(j\)</span>, <span class="math inline">\(&#39;\)</span> denotes transposition, and <span class="math inline">\(w_{i,j}\)</span> denotes an entry in a square
+matrix denoting the association from <span class="math inline">\(i\)</span> to <span class="math inline">\(j\)</span>. As with the eligibility traces above,
+the entries in each matrix are the weights of specific stimulus
+compounds.</p>
+<p>Internally, the <span class="math inline">\(w_j^t\)</span> is
+constructed on a trial-by-trial, step-by-step basis, depending on the
+stimulus compounds active at the time.</p>
+</div>
+<div id="learning-associations" class="section level1">
+<h1>3 - Learning associations</h1>
+<p>Owing to its name, the TD model updates associations based on a
+temporally discounted prediction of upcoming stimuli. This temporal
+difference error term is given by:</p>
+<p><span class="math display">\[
+\tag{Eq. 3}
+\delta_j^t = \lambda_j^t +  \gamma V_j^t - V_j^{t-1}
+\]</span></p>
+<p>where <span class="math inline">\(\lambda_j\)</span> is the value of
+stimulus <span class="math inline">\(j\)</span> at time <span class="math inline">\(t\)</span>, which also determines the asymptote
+for stimulus weights towards <span class="math inline">\(j\)</span>.</p>
+<p>The temporal difference error term is used to update <span class="math inline">\(w\)</span> via:</p>
+<p><span class="math display">\[
+\tag{Eq. 4}
+w_{i,j}^t = w_{i,j}^t + \alpha_i \beta(x_j^t) \delta_j^t e_i^t
+\]</span></p>
+<p>where <span class="math inline">\(\alpha_i\)</span> is a learning
+rate parameter for stimulus <span class="math inline">\(i\)</span>, and
+<span class="math inline">\(\beta(x_j)\)</span> is a function that
+returns one of two learning rate parameters (<span class="math inline">\(\beta_{on}\)</span> or <span class="math inline">\(\beta_{off}\)</span>) depending on whether <span class="math inline">\(j\)</span> is being presented or not at time <span class="math inline">\(t\)</span>.</p>
+</div>
+<div id="generating-responses" class="section level1">
+<h1>4 - Generating responses</h1>
+<p>As with many associative learning models, the transformation between
+stimulus expectations and responding is unspecified/left in the hands of
+the user. The TD model does not return a response vector, but it
+suffices to assume that responding is the identity function on the
+expected stimulus values, as follows:</p>
+<p><span class="math display">\[
+\tag{Eq. 5}
+r_j^t = V_j^t
+\]</span></p>
+<div id="references" class="section level2 unnumbered">
+<h2 class="unnumbered">References</h2>
+<div id="refs" class="references csl-bib-body hanging-indent" entry-spacing="0" line-spacing="2">
+<div id="ref-rescorla_theory_1972" class="csl-entry">
+Rescorla, R. A., &amp; Wagner, A. R. (1972). A theory of
+<span>Pavlovian</span> conditioning: <span>Variations</span> in the
+effectiveness of reinforcement and nonreinforcement. In A. H. Black
+&amp; W. F. Prokasy (Eds.), <em>Classical conditioning <span>II</span>:
+<span>Current</span> research and theory.</em> (pp. 64–69).
+Appleton-Century-Crofts.
+</div>
+<div id="ref-suttonTimederivativeModelsPavlovian1990" class="csl-entry">
+Sutton, R. S., &amp; Barto, A. G. (1990). Time-derivative models of
+<span>Pavlovian</span> reinforcement. In M. Gabriel &amp; J. W. Moore
+(Eds.), <em>Learning and computational neuroscience</em> (pp. 497–537).
+MIT Press.
+</div>
+</div>
+</div>
+</div>
+<div class="footnotes footnotes-end-of-document">
+<hr />
+<ol>
+<li id="fn1"><p>A’s fourth compound and B’s second compound.<a href="#fnref1" class="footnote-back">↩︎</a></p></li>
+<li id="fn2"><p>This can be understood as the expected value if the
+expected stimulus has some reward value.<a href="#fnref2" class="footnote-back">↩︎</a></p></li>
+</ol>
+</div>
+
+
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
